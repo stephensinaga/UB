@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
-use GuzzleHttp\Handler\Proxy;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
+
+    public function Dashboard(){
+        return view('dashboard');
+    }
+
     public function CreateProductView()
     {
         $items = Product::all();
