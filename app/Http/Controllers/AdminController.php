@@ -23,11 +23,11 @@ class AdminController extends Controller
     public function CreateProduct(Request $request)
     {
         $request->validate([
-            'product_name' => 'required|string|max:255',
-            'product_code' => 'required|string|max:255',
-            'product_category' => 'required|string|max:255',
-            'product_price' => 'required|numeric',
-            'product_images' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                                                                                                                                                        'product_name' => 'required|string|max:255',
+                                                                                                                                                        'product_code' => 'required|string|max:255',
+                                                                                                                                                        'product_category' => 'required|string|max:255',
+                                                                                                                                                        'product_price' => 'required|numeric',
+                                                                                                                                                        'product_images' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $category = Category::firstOrCreate(
