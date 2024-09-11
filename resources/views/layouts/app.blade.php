@@ -6,7 +6,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
     <title>POS</title>
-    <link rel="icon" href="{{ asset('assets/img/company_logo.png')}}" type="image/png">
+    <link rel="icon" href="{{ asset('assets/img/dapur_negeri.jpeg')}}" type="image/png">
 
     <!-- Google Fonts -->
     <link href="https://fonts.gstatic.com" rel="preconnect">

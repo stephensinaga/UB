@@ -1,12 +1,11 @@
 <header id="header" class="header fixed-top d-flex align-items-center">
 
-    <div class="d-flex align-items-center justify-content-between">
-    <a href="{{ route('Dashboard')}}" class="logo d-flex align-items-center">
-        <img src="{{ asset('assets/img/company_logo.png')}}" alt="">
-        <span class="d-none d-lg-block">POS</span>
+<div class="d-flex align-items-center justify-content-between">
+    <a href="{{ route('Dashboard') }}" class="logo d-flex align-items-center">
+        <img src="{{ asset('assets/img/dapur_negeri.png') }}" alt="" style="width: 150px; height: auto;">
     </a>
     <i class="bi bi-list toggle-sidebar-btn"></i>
-    </div><!-- End Logo -->
+</div><!-- End Logo -->
 
     <nav class="header-nav ms-auto">
     <ul class="d-flex align-items-center">
