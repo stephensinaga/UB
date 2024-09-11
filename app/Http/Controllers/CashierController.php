@@ -51,9 +51,9 @@ class CashierController extends Controller
 
     public function MinOrderItem($id)
     {
-        $product = Order::where('product_id', $id)->whereNull('main_id')->first();
+        $product = Order::where('id', $id)->first();
 
-        if ($product->qty) {
+        if ($product) {
             $product->qty -= 1;
 
             if ($product->qty <= 0) {

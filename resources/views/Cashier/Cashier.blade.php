@@ -19,6 +19,7 @@
 </head>
 
 <body>
+    <!-- Product list and order form -->
     <h1>Cashier</h1>
     <div class="card mt-5 p-3">
         <h2>Product List</h2>
@@ -63,49 +64,53 @@
         </table>
     </div>
 
+    <!-- Checkout List -->
     <div class="container mt-5">
         <div class="card shadow-sm p-4">
             <h2 class="mb-4">Checkout List</h2>
+            <table class="table table-bordered table-hover table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Product Price</th>
+                        <th>Product Qty</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($order as $item)
+                        <tr>
+                            <td>{{ $item->product_name }}</td>
+                            <td>{{ number_format($item->product_price, 2) }}</td>
+                            <td>
+                                {{ $item->qty }}
+                                <!-- MinOrderItem Form: this should be separated from the checkout form -->
+                                <form action="javascript:void(0)" method="post" class="MinOrderItem"
+                                    data-id="{{ $item->id }}">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit">Reduce</button>
+                                </form>
+                            </td>
+                            <td>{{ number_format($item->qty * $item->product_price, 2) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr class="font-weight-bold">
+                        <td colspan="3" class="text-right">Total Price:</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- Checkout Form (Separate) -->
             <form action="javascript:void(0)" method="POST" id="CheckOutTable">
                 @csrf
-                <table class="table table-bordered table-hover table-striped">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Product Name</th>
-                            <th>Product Price</th>
-                            <th>Product Qty</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($order as $item)
-                            <tr>
-                                <td>{{ $item->product_name }}</td>
-                                <td>{{ number_format($item->product_price, 2) }}</td>
-                                <td>
-                                    {{ $item->qty }}
-                                    <form action="javascript:void(0)" method="post" class="MinOrderItem"
-                                        data-id="{{ $item->id }}">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit">Hmm</button>
-                                    </form>
-                                </td>
-                                <td>{{ number_format($item->qty * $item->product_price, 2) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr class="font-weight-bold">
-                            <td colspan="3" class="text-right">Total Price:</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
                 <div class="form-group">
                     <label for="customerSelect">Pelanggan</label>
                     <select class="form-control" id="customerSelect" name="customer_select">
-                        <option value="">Pilih Pelanggan</option>
+                        <option value="">Pilih Pelanggan</option>   
                         @foreach ($customers as $customer)
                             <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
                         @endforeach
@@ -123,11 +128,15 @@
         </div>
     </div>
 
+
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
         integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     <script type="text/javascript">
         $(document).ready(function() {
+            // Function to calculate the total price
             function calculateTotalPrice() {
                 let totalPrice = 0;
 
@@ -152,6 +161,7 @@
 
             calculateTotalPrice();
 
+            // Ordering a product
             $('tbody').on('submit', '.OrderProduct', function(event) {
                 event.preventDefault();
                 var item = $(this);
@@ -173,6 +183,7 @@
                 });
             });
 
+            // Handling customer select input
             $('#customerSelect').on('change', function() {
                 if ($(this).val() == 'other') {
                     $('#manualEntry').show();
@@ -181,6 +192,7 @@
                 }
             });
 
+            // Checkout Process (Submit checkout table)
             $('#CheckOutTable').on('submit', function(event) {
                 event.preventDefault();
                 var form = $(this);
@@ -201,6 +213,7 @@
                 });
             });
 
+            // Reducing item quantity (MinOrderItem form)
             $('tbody').on('submit', '.MinOrderItem', function(event) {
                 event.preventDefault();
                 var item = $(this);
@@ -223,9 +236,9 @@
                     }
                 });
             });
-
         });
     </script>
+
 </body>
 
 </html>
