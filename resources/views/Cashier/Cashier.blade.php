@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
         integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
@@ -34,27 +35,29 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($product as $index => $item)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>
-                        @if($item->product_images)
-                        <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" width="100">
-                        @else
-                        No Image
-                        @endif
-                    </td>
-                    <td>{{ $item->product_name }}</td>
-                    <td>{{ $item->product_code }}</td>
-                    <td>{{ $item->product_category }}</td>
-                    <td>{{ number_format($item->product_price, 2) }}</td>
-                    <td>
-                        <form action="javascript:void(0)" method="post" id="OrderProduct" data-id="{{ $item->id }}">
-                            @csrf
-                            <button type="submit">Order</button>
-                        </form>
-                    </td>
-                </tr>
+                @foreach ($product as $index => $item)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>
+                            @if ($item->product_images)
+                                <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image"
+                                    width="100">
+                            @else
+                                No Image
+                            @endif
+                        </td>
+                        <td>{{ $item->product_name }}</td>
+                        <td>{{ $item->product_code }}</td>
+                        <td>{{ $item->product_category }}</td>
+                        <td>{{ number_format($item->product_price, 2) }}</td>
+                        <td>
+                            <form action="javascript:void(0)" method="post" class="OrderProduct"
+                                data-id="{{ $item->id }}">
+                                @csrf
+                                <button type="submit">Order</button>
+                            </form>
+                        </td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>
@@ -65,7 +68,6 @@
             <h2 class="mb-4">Checkout List</h2>
             <form action="javascript:void(0)" method="POST" id="CheckOutTable">
                 @csrf
-                @method('POST')
                 <table class="table table-bordered table-hover table-striped">
                     <thead class="thead-dark">
                         <tr>
@@ -76,35 +78,36 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($pendingProduct as $item)
-                        <tr>
-                            <td>{{ $item->product_name }}</td>
-                            <td>{{ number_format($item->product_price, 2) }}</td>
-                            <td>{{ $item->order_qty }}
-                                {{-- <form action="javascript:void(0)" method="delete" data-id="{{ $item->id }}"
-                                    id="DeletePendingOrder">
-                                    @csrf
-                                    @method('delete')
-                                    <button type="submit"><i class="fa-solid fa-minus"></i></button>
-                                </form> --}}
-                            </td>
-                            <td>{{ number_format($item->total_price, 2) }}</td>
-                        </tr>
+                        @foreach ($order as $item)
+                            <tr>
+                                <td>{{ $item->product_name }}</td>
+                                <td>{{ number_format($item->product_price, 2) }}</td>
+                                <td>
+                                    {{ $item->qty }}
+                                    <form action="javascript:void(0)" method="post" class="MinOrderItem"
+                                        data-id="{{ $item->id }}">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit">Hmm</button>
+                                    </form>
+                                </td>
+                                <td>{{ number_format($item->qty * $item->product_price, 2) }}</td>
+                            </tr>
                         @endforeach
                     </tbody>
                     <tfoot>
                         <tr class="font-weight-bold">
                             <td colspan="3" class="text-right">Total Price:</td>
-                            <td>{{ number_format($total, 2) }}</td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
                 <div class="form-group">
                     <label for="customerSelect">Pelanggan</label>
-                    <select class="form-control" id="customerSelect" name="customer_DD">
+                    <select class="form-control" id="customerSelect" name="customer_select">
                         <option value="">Pilih Pelanggan</option>
-                        @foreach($customers as $customer)
-                        <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
+                        @foreach ($customers as $customer)
+                            <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
                         @endforeach
                         <option value="other">Lainnya (Isi Manual)</option>
                     </select>
@@ -120,14 +123,36 @@
         </div>
     </div>
 
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
         integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
     <script type="text/javascript">
-                    $(document).ready(function () {
-                        $('tbody').on('submit', '#OrderProduct', function (event) {
+        $(document).ready(function() {
+            function calculateTotalPrice() {
+                let totalPrice = 0;
+
+                $('tbody tr').each(function() {
+                    let price = $(this).find('td:nth-child(2)').text().trim();
+                    price = parseFloat(price.replace(/[^0-9.-]+/g, ''));
+
+                    let qty = $(this).find('td:nth-child(3)').text().trim();
+                    qty = parseInt(qty);
+
+                    if (!isNaN(price) && !isNaN(qty)) {
+                        let totalItemPrice = price * qty;
+                        totalPrice += totalItemPrice;
+                    }
+                });
+
+                $('tfoot tr td:last-child').text(totalPrice.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
+            }
+
+            calculateTotalPrice();
+
+            $('tbody').on('submit', '.OrderProduct', function(event) {
                 event.preventDefault();
                 var item = $(this);
                 var id = item.data('id');
@@ -137,18 +162,18 @@
                     url: url,
                     type: 'POST',
                     data: item.serialize(),
-                    success: function (result) {
+                    success: function(result) {
                         alert(result.message || 'Product Berhasil di Pesan');
                         location.reload();
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         console.error(xhr.responseText);
                         alert('Gagal Memesan Product.');
                     }
                 });
             });
 
-            $('#customerSelect').on('change', function () {
+            $('#customerSelect').on('change', function() {
                 if ($(this).val() == 'other') {
                     $('#manualEntry').show();
                 } else {
@@ -156,30 +181,51 @@
                 }
             });
 
-            $('#CheckOutTable').on('submit', function (event) {
+            $('#CheckOutTable').on('submit', function(event) {
                 event.preventDefault();
-
                 var form = $(this);
                 var url = "/cashier/checkout/pending/product";
+
                 $.ajax({
                     url: url,
                     type: 'POST',
                     data: form.serialize(),
-                    success: function (result) {
+                    success: function(result) {
                         alert('Pesanan berhasil di Checkout');
                         location.reload();
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.log(xhr.responseText);
                         alert('Pesanan gagal di Checkout');
                     }
                 });
             });
 
+            $('tbody').on('submit', '.MinOrderItem', function(event) {
+                event.preventDefault();
+                var item = $(this);
+                var id = item.data('id');
+                var url = "/cashier/min/pending/order/" + id;
+
+                $.ajax({
+                    url: url,
+                    type: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(result) {
+                        alert('Pengurangan Berhasil');
+                        location.reload();
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(xhr.responseText);
+                        alert('Pengurangan Gagal 🤦‍♂️');
+                    }
+                });
+            });
 
         });
     </script>
-
 </body>
 
 </html>

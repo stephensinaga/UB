@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\MainOrder;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redis;
 
 class CashierController extends Controller
 {
@@ -14,68 +14,67 @@ class CashierController extends Controller
     {
         $product = Product::all();
 
-        $order = Order::where('status', 'pending')->get();
-
-        $productIds = $order->pluck('product_id')->toArray();
-
-        $pendingProduct = Product::whereIn('id', $productIds)->get()->map(function ($product) use ($order) {
-            $product->order_qty = $order->where('product_id', $product->id)->count();
-
-            $product->total_price = $product->product_price * $product->order_qty;
-
-            return $product;
-        });
-
-        $total = $pendingProduct->sum('total_price');
+        $order = Order::whereNull('main_id')->get();
 
         $customers = Customer::all();
 
-        return view('Cashier.Cashier', compact('product', 'order', 'total', 'customers', 'pendingProduct'));
+        return view('Cashier.Cashier', compact('product', 'order', 'customers'));
     }
 
-    public function Order(Request $request, $id)
+    public function Order($id)
     {
         $product = Product::where('id', $id)->first();
 
         if ($product) {
-            $order = new Order();
-            $order->product_id = $product->id;
-            $order->status = 'pending';
+            $checkItem = Order::where('product_id', $product->id)
+                ->whereNull('main_id')
+                ->first();
 
-            $order->save();
+            if ($checkItem) {
+                $checkItem->qty += 1;
+                $checkItem->save();
+            } else {
+                $order = new Order();
+                $order->product_id = $product->id;
+                $order->product_name = $product->product_name;
+                $order->product_code = $product->product_code;
+                $order->product_category = $product->product_category;
+                $order->product_price = $product->product_price;
+                $order->qty = 1;
+
+                $order->save();
+            }
         }
 
         return back();
+    }
+
+    public function MinOrderItem($id)
+    {
+        $product = Order::where('product_id', $id)->whereNull('main_id')->first();
+
+        if ($product->qty) {
+            $product->qty -= 1;
+
+            if ($product->qty <= 0) {
+                $product->delete();
+            } else {
+                $product->save();
+            }
+        }
     }
 
     public function CheckOut(Request $request)
     {
-        $customer = $request->input('customer');
-        if (!$customer) {
-            $customer = $request('customer_DD');
-        }
+        $customer = Customer::firstOrCreate(
+            ['customer' => $request->customer_select],
+            ['customer' => $request->customer_select]
+        );
 
-        if (!$customer) {
-            return back();
-        }
-
-        $customerRecord = Customer::firstOrCreate(['customer' => $customer]);
-        $items = Order::where('status', 'pending')->get();
-
-        foreach ($items as $checkout) {
-            $checkout->status = 'ordered';
-            $checkout->customer = $customerRecord->customer;
-            $checkout->save();
-        }
+        $mainOrder = new MainOrder();
+        $mainOrder->customer = $customer->customer;
 
         return back();
     }
 
-    public function DeletePendingOrder($id)
-    {
-        $item = Order::where('id', $id)->first();
-        $item->delete();
-
-        return back();
-    }
 }

@@ -29,7 +29,7 @@ Route::prefix('cashier')->group(function () {
     Route::get('view', [CashierController::class, 'CashierView'])->name('CashierView');
     Route::post('order/selected/product/{id}', [CashierController::class, 'Order'])->name('OrderProduct');
     Route::post('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');
-    Route::delete('delete/pending/order/{id}', [CashierController::class, 'DeletePendingOrder'])->name('DeletePendingOrder');
+    Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItem'])->name('MinOrderItem');
 
     // Route::put('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');
 });

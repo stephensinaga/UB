@@ -13,9 +13,13 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->string('main_id')->nullable();
             $table->string('product_id');
-            $table->enum('status', ['pending', 'ordered']);
-            $table->string('customer')->nullable();
+            $table->string('product_name');
+            $table->text('product_code');
+            $table->text('product_category');
+            $table->integer('qty');
+            $table->bigInteger('product_price');
             $table->timestamps();
         });
     }

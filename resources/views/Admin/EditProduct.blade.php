@@ -39,14 +39,13 @@
                         <div class="form-group">
                             <label for="edit_product_category">Product Category:</label>
                             <select name="product_category" id="edit_product_category" class="form-control">
-                                <option value="makanan" {{ $product->product_category == 'makanan' ? 'selected' : ''
-                                    }}>Makanan</option>
-                                <option value="minuman" {{ $product->product_category == 'minuman' ? 'selected' : ''
-                                    }}>Minuman</option>
-                                <option value="cemilan" {{ $product->product_category == 'cemilan' ? 'selected' : ''
-                                    }}>Cemilan</option>
-                                <option value="other" {{ !in_array($product->product_category, ['makanan', 'minuman',
-                                    'cemilan']) ? 'selected' : '' }}>Lainnya</option>
+                                <option value="makanan" {{ $product->product_category == 'makanan' ? 'selected' : '' }}>
+                                    Makanan</option>
+                                <option value="minuman" {{ $product->product_category == 'minuman' ? 'selected' : '' }}>
+                                    Minuman</option>
+                                <option value="other"
+                                    {{ !in_array($product->product_category, ['makanan', 'minuman', 'cemilan']) ? 'selected' : '' }}>
+                                    Lainnya</option>
                             </select>
                             <input type="text" name="new_product_category" id="edit_new_product_category"
                                 class="form-control mt-2" placeholder="Masukkan kategori baru"
@@ -72,52 +71,53 @@
     integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="text/javascript">
-    $(document).ready(function () {
-    // Setup CSRF token for all AJAX requests
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
-
-    $('#edit_product_category').on('change', function () {
-        if ($(this).val() === 'other') {
-            $('#edit_new_product_category').show();
-        } else {
-            $('#edit_new_product_category').hide();
-        }
-    });
-
-    $('#EditProductForm').on('submit', function (event) {
-        event.preventDefault();
-
-        var id = $('#edit_product_id').val();
-        var formData = new FormData(this);
-
-        if ($('#edit_product_category').val() === 'other') {
-            let newCategory = $('#edit_new_product_category').val();
-            if (newCategory) {
-                formData.set('product_category', newCategory);
-            }
-        }
-
-        $.ajax({
-            url: "/admin/edit/product/" + id,
-            type: 'PUT',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function (result) {
-                alert('Data berhasil diubah');
-                window.location.href = 'http://127.0.0.1:8000/admin/create/product/view/';
-            },
-            error: function (xhr, status, error) {
-                console.log(xhr.responseText);
-                alert('Gagal mengubah data');
+    $(document).ready(function() {
+        // Setup CSRF token for all AJAX requests
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+
+        $('#edit_product_category').on('change', function() {
+            if ($(this).val() === 'other') {
+                $('#edit_new_product_category').show();
+            } else {
+                $('#edit_new_product_category').hide();
+            }
+        });
+
+        $('#EditProductForm').on('submit', function(event) {
+            event.preventDefault();
+
+            var id = $('#edit_product_id').val();
+            var formData = new FormData(this);
+
+            if ($('#edit_product_category').val() === 'other') {
+                let newCategory = $('#edit_new_product_category').val();
+                if (newCategory) {
+                    formData.set('product_category', newCategory);
+                }
+            }
+
+            $.ajax({
+                url: "/admin/edit/product/" + id,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(result) {
+                    alert('Data berhasil diubah');
+                    window.location.href =
+                        'http://127.0.0.1:8000/admin/create/product/view/';
+                },
+                error: function(xhr, status, error) {
+                    console.log(xhr.responseText);
+                    alert('Gagal mengubah data');
+                }
+            });
+        });
     });
-});
 </script>
 
 </html>
