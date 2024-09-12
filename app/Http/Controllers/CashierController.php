@@ -66,15 +66,59 @@ class CashierController extends Controller
 
     public function CheckOut(Request $request)
     {
+        // Validasi data dari form checkout
+        $request->validate([
+            'customer_select' => 'required',
+            'payment_type' => 'required',
+            'cash' => 'nullable|numeric|min:0',
+            'transfer_proof' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048'
+        ]);
+
+        // Cari atau buat customer
         $customer = Customer::firstOrCreate(
-            ['customer' => $request->customer_select],
-            ['customer' => $request->customer_select]
+            ['customer' => $request->customer_select == 'other' ? $request->customer : $request->customer_select],
+            ['customer' => $request->customer]
         );
 
-        $mainOrder = new MainOrder();
-        $mainOrder->customer = $customer->customer;
+        // Hitung total harga dari order (asumsi sudah ada logic sebelumnya untuk menyimpan order ke tabel `orders`)
+        $orders = Order::whereNull('main_id')->get(); // Sesuaikan query ini
+        $grandtotal = $orders->sum(function ($order) {
+            return $order->qty * $order->product_price;
+        });
 
-        return back();
+        // Hitung kembalian
+        $cashGiven = $request->cash ?? 0;
+        $changes = $cashGiven - $grandtotal;
+
+        // Handle upload bukti transfer jika ada
+        $transferImage = null;
+        if ($request->hasFile('transfer_proof')) {
+            $transfer = $request->file('transfer_proof');
+            $transferImageName = time() . '_' . $transfer->getClientOriginalName();
+            $transferImage = $transfer->store('bukti_transfer', $transferImageName, 'public');
+        }
+
+
+        // Simpan data ke tabel main_orders
+        $Checkout = new MainOrder();
+        $Checkout->customer = $customer->customer;
+        $Checkout->grandtotal = $grandtotal;
+        $Checkout->payment = $request->payment_type;
+        $Checkout->cash = $cashGiven;
+        $Checkout->changes = max($changes, 0); // Pastikan kembalian tidak negatif
+        $Checkout->transfer_image = $transferImage;
+        $Checkout->status = 'pending';
+        $Checkout->save();
+
+        // Dapatkan id dari main order yang baru saja disimpan
+        $mainOrderId = $Checkout->id;
+
+        // Ubah status pesanan dan tambahkan main_id
+        foreach ($orders as $order) {
+            $order->main_id = $mainOrderId; // Set main_id dengan id dari MainOrder yang baru saja dibuat
+            $order->save();
+        }
+
+        return response()->json(['message' => 'Checkout berhasil'], 200);
     }
-
 }

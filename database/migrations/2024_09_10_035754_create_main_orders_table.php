@@ -20,6 +20,7 @@ class CreateMainOrdersTable extends Migration
             $table->enum('payment', ['cash','transfer']);
             $table->bigInteger('cash');
             $table->bigInteger('changes');
+            $table->string('transfer_image');
             $table->enum('status', ['print', 'pending'])->default('pending');
             $table->timestamps();
         });

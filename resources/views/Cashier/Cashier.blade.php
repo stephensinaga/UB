@@ -15,6 +15,11 @@
         .manual-entry {
             display: none;
         }
+
+        .cash-section,
+        .transfer-section {
+            display: none;
+        }
     </style>
 </head>
 
@@ -52,8 +57,7 @@
                         <td>{{ $item->product_category }}</td>
                         <td>{{ number_format($item->product_price, 2) }}</td>
                         <td>
-                            <form action="javascript:void(0)" method="post" class="OrderProduct"
-                                data-id="{{ $item->id }}">
+                            <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
                                 @csrf
                                 <button type="submit">Order</button>
                             </form>
@@ -84,9 +88,7 @@
                             <td>{{ number_format($item->product_price, 2) }}</td>
                             <td>
                                 {{ $item->qty }}
-                                <!-- MinOrderItem Form: this should be separated from the checkout form -->
-                                <form action="javascript:void(0)" method="post" class="MinOrderItem"
-                                    data-id="{{ $item->id }}">
+                                <form method="post" class="MinOrderItem" data-id="{{ $item->id }}">
                                     @csrf
                                     @method('PUT')
                                     <button type="submit">Reduce</button>
@@ -104,13 +106,14 @@
                 </tfoot>
             </table>
 
-            <!-- Checkout Form (Separate) -->
-            <form action="javascript:void(0)" method="POST" id="CheckOutTable">
+            <!-- Checkout Form -->
+            <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
                 @csrf
+                <!-- Customer selection, payment type, and cash/transfer inputs -->
                 <div class="form-group">
                     <label for="customerSelect">Pelanggan</label>
                     <select class="form-control" id="customerSelect" name="customer_select">
-                        <option value="">Pilih Pelanggan</option>   
+                        <option value="">Pilih Pelanggan</option>
                         @foreach ($customers as $customer)
                             <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
                         @endforeach
@@ -120,14 +123,33 @@
                         <label for="customerName">Masukan nama Pelanggan</label>
                         <input type="text" class="form-control" id="customerName" name="customer">
                     </div>
+
+                    <br>
+
+                    <label for="paymentType">Tipe Pembayaran</label>
+                    <select class="form-control" id="paymentType" name="payment_type">
+                        <option value="">Pilih Tipe Pembayaran</option>
+                        <option value="cash">Cash</option>
+                        <option value="transfer">Transfer</option>
+                    </select>
+
+                    <div class="cash-section mt-3">
+                        <label for="cashGiven">Uang Dibayar</label>
+                        <input type="number" class="form-control" id="cashGiven" name="cash">
+                    </div>
+
+                    <div class="transfer-section mt-3">
+                        <label for="transferProof">Unggah Bukti Transfer</label>
+                        <input type="file" class="form-control-file" id="transferProof" name="transfer_proof">
+                    </div>
                 </div>
+
                 <div class="text-right">
                     <button type="submit" class="btn btn-primary mt-3">Checkout</button>
                 </div>
             </form>
         </div>
     </div>
-
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
@@ -160,6 +182,21 @@
             }
 
             calculateTotalPrice();
+
+
+            $('#paymentType').on('change', function() {
+                let paymentType = $(this).val();
+                if (paymentType === 'cash') {
+                    $('.cash-section').show();
+                    $('.transfer-section').hide();
+                } else if (paymentType === 'transfer') {
+                    $('.cash-section').hide();
+                    $('.transfer-section').show();
+                } else {
+                    $('.cash-section').hide();
+                    $('.transfer-section').hide();
+                }
+            });
 
             // Ordering a product
             $('tbody').on('submit', '.OrderProduct', function(event) {
