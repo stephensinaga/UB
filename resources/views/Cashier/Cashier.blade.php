@@ -232,13 +232,16 @@
             // Checkout Process (Submit checkout table)
             $('#CheckOutTable').on('submit', function(event) {
                 event.preventDefault();
-                var form = $(this);
-                var url = "/cashier/checkout/pending/product";
+
+                var form = $(this)[0]; // Mengambil elemen form
+                var formData = new FormData(form); // Membuat FormData untuk meng-handle file upload
 
                 $.ajax({
-                    url: url,
+                    url: "/cashier/checkout/pending/product",
                     type: 'POST',
-                    data: form.serialize(),
+                    data: formData,
+                    contentType: false, // Pastikan konten tidak di-encode
+                    processData: false, // Jangan memproses data
                     success: function(result) {
                         alert('Pesanan berhasil di Checkout');
                         location.reload();
@@ -249,6 +252,7 @@
                     }
                 });
             });
+
 
             // Reducing item quantity (MinOrderItem form)
             $('tbody').on('submit', '.MinOrderItem', function(event) {
