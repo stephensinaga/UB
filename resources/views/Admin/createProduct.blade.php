@@ -1,60 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <title>Create Product</title>
-</head>
+@section('contents')
+<main id="main" class="main">
 
-<body>
-    <div class="container mt-5">
-        <div class="card p-3">
-            <h3 class="mb-4">Create Product</h3>
-            <form action="javascript:void(0)" method="post" enctype="multipart/form-data" id="CreateProduct">
-                @method('POST')
-                @csrf
-                <div class="form-group">
-                    <label for="product_images">Product Image:</label>
-                    <input type="file" name="product_images" class="form-control" accept="image/*" required>
-                </div>
-                <div class="form-group">
-                    <label for="product_name">Product Name:</label>
-                    <input type="text" name="product_name" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="product_code">Product Code:</label>
-                    <input type="text" name="product_code" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="product_category">Product Category:</label>
-                    <select name="product_category" class="form-control" id="product_category">
-                        <option value=""> --> Pilih Category <-- </option>
-                                @foreach ($category as $item)
-                        <option value="{{ $item->category }}">{{ $item->category }}</option>
-                        @endforeach
-                        <option value="other">Lainnya</option>
-                    </select>
-                    <input type="text" name="new_product_category" id="new_product_category" class="form-control mt-2"
-                        placeholder="Masukkan kategori baru" style="display: none;">
-                </div>
-                <div class="form-group">
-                    <label for="product_price">Product Price:</label>
-                    <input type="text" name="product_price" class="form-control" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Create Product</button>
-                </div>
-            </form>
-        </div>
+        <!-- Basic Modal -->
+        <div class="modal fade" id="basicModal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Basic Modal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form action="javascript:void(0)" method="post" enctype="multipart/form-data" id="CreateProduct">
+                    @method('POST')
+                    @csrf
+                    <div class="form-group">
+                        <label for="product_images">Product Image:</label>
+                        <input type="file" name="product_images" class="form-control" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product_name">Product Name:</label>
+                        <input type="text" name="product_name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product_code">Product Code:</label>
+                        <input type="text" name="product_code" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product_category">Product Category:</label>
+                        <select name="product_category" class="form-control" id="product_category">
+                            <option value=""> --> Pilih Category <-- </option>
+                                    @foreach ($category as $item)
+                            <option value="{{ $item->category }}">{{ $item->category }}</option>
+                            @endforeach
+                            <option value="other">Lainnya</option>
+                        </select>
+                        <input type="text" name="new_product_category" id="new_product_category" class="form-control mt-2"
+                            placeholder="Masukkan kategori baru" style="display: none;">
+                    </div>
+                    <div class="form-group">
+                        <label for="product_price">Product Price:</label>
+                        <input type="text" name="product_price" class="form-control" required>
+                    </div>
+
+              </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Create Product</button>
+                    </div>
+             </form>
+            </div>
+          </div>
+        </div><!-- End Basic Modal-->
 
         <div class="card mt-5 p-3">
-            <h2>Product List</h2>
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Product List</h2>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#basicModal">
+                    Add Product
+                </button>
+            </div>
             <table class="table table-bordered table-striped mt-3">
                 <thead class="thead-dark">
                     <tr>
@@ -100,10 +106,6 @@
                 </tbody>
             </table>
         </div>
-
-
-
-    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
         integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
@@ -173,6 +175,4 @@
 
         });
     </script>
-</body>
-
-</html>
+</main>
