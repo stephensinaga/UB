@@ -1,8 +1,9 @@
 <header id="header" class="header fixed-top d-flex align-items-center">
 
 <div class="d-flex align-items-center justify-content-between">
-    <a href="{{ route('Dashboard') }}" class="logo d-flex align-items-center">
-        <img src="{{ asset('assets/img/dapur_negeri.png') }}" alt="" style="width: 150px; height: auto;">
+    <a href="" class="logo d-flex align-items-center">
+        <img src="{{ asset('assets/img/dapur_negeri.png') }}" alt="">
+        <span class="d-none d-lg-block">Dapur Negeriku</span>
     </a>
     <i class="bi bi-list toggle-sidebar-btn"></i>
 </div><!-- End Logo -->
@@ -46,7 +47,7 @@
 
         <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
             <span class="d-none d-md-block dropdown-toggle ps-2">
-            <small>{{ auth()->user()->nama }}</small>
+            <small>{{ auth()->user()->name }}</small>
                 <br>
                 <small>{{ auth()->user()->level }}</small>
             </span>

@@ -32,4 +32,7 @@ Route::prefix('cashier')->group(function () {
     Route::delete('delete/pending/order/{id}', [CashierController::class, 'DeletePendingOrder'])->name('DeletePendingOrder');
 
     // Route::put('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');
+
+    // Route::get('filter', [CashierController::class, 'filter'])->name('ProductFilter');
+
 });

@@ -13,25 +13,26 @@
                 <div class="row">
                     @foreach($product as $index => $item)
                     <div class="col-xxl-4 col-md-6">
-                        <div class="card info-card sales-card">
+                        <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">{{ $item->product_name }} <span>| {{ $item->product_category }}</span></h5>
-
                                 <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <div class="card-icon d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
                                         @if($item->product_images)
-                                        <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" style="width: 100%; height: 100%; border-radius: 50%;">
+                                        <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" style="width: 100%; height: 100%; object-fit: cover;">
                                         @else
-                                        <i class="bi bi-cart"></i>
+                                        <i class="bi bi-cart" style="font-size: 3rem;"></i>
                                         @endif
                                     </div>
-                                    <div class="ps-3">
-                                        <h6>{{ number_format($item->product_price, 2) }}</h6>
+                                    <div class="ps-3" style="flex-grow: 1;">
+                                        <h4 style="font-size:15px" class="card-title">{{ $item->product_name }}</h4>
+                                        <h6 style="font-size: 20px;">Rp{{ number_format($item->product_price, 2) }}</h6>
                                         <span class="text-muted small pt-2 ps-1">{{ $item->product_code }}</span>
 
                                         <form action="javascript:void(0)" method="post" id="OrderProduct" data-id="{{ $item->id }}">
                                             @csrf
-                                            <button type="submit" class="btn btn-primary mt-2">Order</button>
+                                            <button type="submit" class="btn btn-primary mt-2">
+                                                <i class="bi bi-plus"></i> Order
+                                            </button>
                                         </form>
                                     </div>
                                 </div>
