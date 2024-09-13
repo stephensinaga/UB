@@ -6,7 +6,10 @@ use App\Models\Customer;
 use App\Models\MainOrder;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CashierController extends Controller
 {
@@ -18,7 +21,9 @@ class CashierController extends Controller
 
         $customers = Customer::all();
 
-        return view('Cashier.Cashier', compact('product', 'order', 'customers'));
+        $invoice = MainOrder::latest()->first();
+
+        return view('Cashier.Cashier', compact('product', 'order', 'customers', 'invoice'));
     }
 
     public function Order($id)
@@ -70,7 +75,7 @@ class CashierController extends Controller
             'customer_select' => 'required',
             'payment_type' => 'required',
             'cash' => 'nullable|numeric|min:0',
-            'transfer_proof' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048'
+            'transfer_proof' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
 
         $customer = Customer::firstOrCreate(
@@ -93,8 +98,10 @@ class CashierController extends Controller
             $transferImage = $transfer->storeAs('bukti_transfer', $transferImageName, 'public');
         }
 
+        $cashier = Auth::user();
 
         $Checkout = new MainOrder();
+        $Checkout->cashier = $cashier->name;
         $Checkout->customer = $customer->customer;
         $Checkout->grandtotal = $grandtotal;
         $Checkout->payment = $request->payment_type;
@@ -111,6 +118,8 @@ class CashierController extends Controller
             $order->save();
         }
 
-        return response()->json(['message' => 'Checkout berhasil'], 200);
+        $invoice = MainOrder::where('id', $Checkout->id)->first();
+
+        return response()->json(['message' => 'Checkout berhasil', 'invoice' => $invoice,], 200);
     }
 }

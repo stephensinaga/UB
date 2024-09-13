@@ -20,6 +20,19 @@
         .transfer-section {
             display: none;
         }
+
+        .invoice-header {
+            text-align: center;
+        }
+
+        .invoice-details {
+            margin-top: 20px;
+        }
+
+        .invoice-footer {
+            margin-top: 30px;
+            text-align: right;
+        }
     </style>
 </head>
 
@@ -151,10 +164,64 @@
         </div>
     </div>
 
+    <!-- Invoice Card -->
+    <div class="container mt-4">
+        <div class="card" id="invoiceCard" style="display: none;">
+            <div class="card-header">
+                <h5>Invoice</h5>
+            </div>
+            <div class="card-body">
+                <div class="invoice-header">
+                    <h6>No. Invoice: <span id="invoiceId"></span></h6>
+                    <p>Tanggal: <span id="invoiceDate"></span></p>
+                </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+                <div class="invoice-details mt-3">
+                    <h6>Detail Pemesanan</h6>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Kasir:</th>
+                            <td id="cashierName"></td>
+                        </tr>
+                        <tr>
+                            <th>Pelanggan:</th>
+                            <td id="customerNames"></td>
+                        </tr>
+                        <tr>
+                            <th>Total Harga:</th>
+                            <td id="grandTotal"></td>
+                        </tr>
+                        <tr>
+                            <th>Metode Pembayaran:</th>
+                            <td id="payments"></td>
+                        </tr>
+                        <tr id="cashRow" style="display: none;">
+                            <th>Uang Dibayar:</th>
+                            <td id="cashs"></td>
+                        </tr>
+                        <tr id="changesRow" style="display: none;">
+                            <th>Kembalian:</th>
+                            <td id="changes"></td>
+                        </tr>
+                        <tr id="transferProofRow" style="display: none;">
+                            <th>Bukti Transfer:</th>
+                            <td id="transferProofs"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-right">
+                <button type="button" class="btn btn-secondary" onclick="window.history.back()">Kembali</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">Print</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 
     <script type="text/javascript">
         $(document).ready(function() {
@@ -243,8 +310,50 @@
                     contentType: false, // Pastikan konten tidak di-encode
                     processData: false, // Jangan memproses data
                     success: function(result) {
+                        // Menampilkan alert bahwa checkout berhasil
                         alert('Pesanan berhasil di Checkout');
-                        location.reload();
+
+                        // Ambil data invoice dari respons
+                        var invoice = result.invoice;
+
+                        // Tampilkan data di Invoice Card
+                        $('#invoiceId').text(invoice.id);
+                        $('#invoiceDate').text(new Date(invoice.created_at)
+                            .toLocaleDateString());
+                        $('#cashierName').text(invoice.cashier);
+                        $('#customerNames').text(invoice.customer);
+                        $('#grandTotal').text('Rp ' + parseFloat(invoice.grandtotal)
+                            .toLocaleString('id-ID', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }));
+                        $('#payments').text(invoice.payment.charAt(0).toUpperCase() + invoice
+                            .payment.slice(1));
+
+                        if (invoice.payment === 'cash') {
+                            $('#cashRow').show();
+                            $('#changesRow').show();
+                            $('#cashs').text('Rp ' + parseFloat(invoice.cash)
+                                .toLocaleString('id-ID', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }));
+                            $('#changes').text('Rp ' + parseFloat(invoice.changes)
+                                .toLocaleString('id-ID', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }));
+                            $('#transferProofRow').hide();
+                        } else if (invoice.payment === 'transfer') {
+                            $('#cashRow').hide();
+                            $('#changesRow').hide();
+                            $('#transferProofRow').show();
+                            $('#transferProofs').text('Lihat bukti transfer');
+                            $('#transferProofs').html('<a href="/storage/' + invoice.transfer_image + '" target="_blank">Lihat Bukti Transfer</a>');
+                        }
+
+                        // Tampilkan Invoice Card
+                        $('#invoiceCard').show();
                     },
                     error: function(xhr, status, error) {
                         console.log(xhr.responseText);
@@ -277,6 +386,7 @@
                     }
                 });
             });
+
         });
     </script>
 
