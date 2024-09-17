@@ -5,200 +5,247 @@
     <section class="section dashboard">
         <div class="row">
 
-            <!-- Left side columns -->
             <div class="col-lg-8">
-                <div class="row">
+            <div class="row">
 
-                    {{-- card --}}
-                    <div class="row">
-                        @foreach($product as $index => $item)
-                        <div class="col-xxl-4 col-md-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
-                                            @if($item->product_images)
-                                            <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" style="width: 100%; height: 100%; object-fit: cover;">
-                                            @else
-                                            <i class="bi bi-cart" style="font-size: 3rem;"></i>
-                                            @endif
-                                        </div>
-                                        <div class="ps-3" style="flex-grow: 1;">
-                                            <h4 style="font-size:15px" class="card-title">{{ $item->product_name }}</h4>
-                                            <h6 style="font-size: 20px;">Rp{{ number_format($item->product_price, 2) }}</h6>
-                                            <span class="text-muted small pt-2 ps-1">{{ $item->product_code }}</span>
+        <div class="row mt-5">
+            <h2>Product List</h2>
+            @foreach($product as $index => $item)
+            <div class="col-xxl-4 col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                                @if($item->product_images)
+                                <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" style="width: 100%; height: 100%; object-fit: cover;">
+                                @else
+                                <i class="bi bi-cart" style="font-size: 3rem;"></i>
+                                @endif
+                            </div>
+                            <div class="ps-3" style="flex-grow: 1;">
+                                <h4 style="font-size:15px" class="card-title">{{ $item->product_name }}</h4>
+                                <h6 style="font-size: 20px;">Rp{{ number_format($item->product_price, 2) }}</h6>
+                                <p class="text-muted small">{{ $item->product_code }}</p>
+                                <p class="text-muted small">Category: {{ $item->product_category }}</p>
 
-                                            <form action="javascript:void(0)" method="post" id="OrderProduct" data-id="{{ $item->id }}">
-                                                @csrf
-                                                <button type="submit" class="btn btn-primary mt-2">
-                                                    <i class="bi bi-plus"></i> Order
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
+                                <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary mt-2">
+                                        <i class="bi bi-plus"></i> Order
+                                    </button>
+                                </form>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+    </div>
+        </div>
+
+        <div class="col-lg-4">
+
+    <!-- Checkout List -->
+        <div class="container mt-5">
+            <div class="card shadow-sm p-4">
+                <h2 class="mb-4">Checkout List</h2>
+                <table class="table table-bordered table-hover table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Product Price</th>
+                            <th>Product Qty</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($order as $item)
+                        <tr>
+                            <td>{{ $item->product_name }}</td>
+                            <td>{{ number_format($item->product_price, 2) }}</td>
+                            <td>
+                                {{ $item->qty }}
+                                <form method="post" class="MinOrderItem" data-id="{{ $item->id }}">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit">Reduce</button>
+                                </form>
+                            </td>
+                            <td>{{ number_format($item->qty * $item->product_price, 2) }}</td>
+                        </tr>
                         @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr class="font-weight-bold">
+                            <td colspan="3" class="text-right">Total Price:</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <!-- Checkout Form -->
+                <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
+                    @csrf
+                    <!-- Customer selection, payment type, and cash/transfer inputs -->
+                    <div class="form-group">
+                        <label for="customerSelect">Pelanggan</label>
+                        <select class="form-control" id="customerSelect" name="customer_select">
+                            <option value="">Pilih Pelanggan</option>
+                            @foreach ($customers as $customer)
+                            <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
+                            @endforeach
+                            <option value="other">Lainnya (Isi Manual)</option>
+                        </select>
+                        <div id="manualEntry" class="manual-entry mt-2">
+                            <label for="customerName">Masukan nama Pelanggan</label>
+                            <input type="text" class="form-control" id="customerName" name="customer">
+                        </div>
+
+                        <br>
+
+                        <label for="paymentType">Tipe Pembayaran</label>
+                        <select class="form-control" id="paymentType" name="payment_type">
+                            <option value="">Pilih Tipe Pembayaran</option>
+                            <option value="cash">Cash</option>
+                            <option value="transfer">Transfer</option>
+                        </select>
+
+                        <div class="cash-section mt-3">
+                            <label for="cashGiven">Uang Dibayar</label>
+                            <input type="number" class="form-control" id="cashGiven" name="cash">
+                        </div>
+
+                        <div class="transfer-section mt-3">
+                            <label for="transferProof">Unggah Bukti Transfer</label>
+                            <input type="file" class="form-control-file" id="transferProof" name="transfer_proof">
+                        </div>
+                    </div>
+
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-primary mt-3">Checkout</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Invoice Card -->
+        <div class="container mt-4">
+            <div class="card" id="invoiceCard" style="display: none;">
+                <div class="card-header">
+                    <h5>Invoice</h5>
+                </div>
+                <div class="card-body">
+                    <div class="invoice-header">
+                        <h6>No. Invoice: <span id="invoiceId"></span></h6>
+                        <p>Tanggal: <span id="invoiceDate"></span></p>
+                    </div>
+
+                    <div class="invoice-details mt-3">
+                        <h6>Detail Pemesanan</h6>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Kasir:</th>
+                                <td id="cashierName"></td>
+                            </tr>
+                            <tr>
+                                <th>Pelanggan:</th>
+                                <td id="customerNames"></td>
+                            </tr>
+                            <tr>
+                                <th>Total Harga:</th>
+                                <td id="grandTotal"></td>
+                            </tr>
+                            <tr>
+                                <th>Metode Pembayaran:</th>
+                                <td id="payments"></td>
+                            </tr>
+                            <tr id="cashRow" style="display: none;">
+                                <th>Uang Dibayar:</th>
+                                <td id="cashs"></td>
+                            </tr>
+                            <tr id="changesRow" style="display: none;">
+                                <th>Kembalian:</th>
+                                <td id="changes"></td>
+                            </tr>
+                            <tr id="transferProofRow" style="display: none;">
+                                <th>Bukti Transfer:</th>
+                                <td id="transferProofs"></td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
-            </div><!-- End Left side columns -->
+                <div class="card-footer text-right">
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">Kembali</button>
+                    <button type="button" class="btn btn-primary" onclick="window.print()">Print</button>
+                </div>
+            </div>
+        </div>
 
-            <!-- Right side columns -->
-            <div class="col-lg-4">
+        <div class="container mt-5">
 
-                <!-- Recent Activity -->
-                <div class="card">
-                    <div class="card shadow-sm p-4">
-                        <h2 class="mb-4">Checkout List</h2>
-                        <form action="javascript:void(0)" method="POST" id="CheckOutTable">
-                            @csrf
-                            @method('POST')
-                            <table class="table table-bordered table-hover table-striped">
-                                <thead class="thead-dark">
-                                    <tr>
-                                        <th>Product Name</th>
-                                        <th>Product Price</th>
-                                        <th>Product Qty</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($pendingProduct as $item)
-                                    <tr>
-                                        <td>{{ $item->product_name }}</td>
-                                        <td>{{ number_format($item->product_price, 2) }}</td>
-                                        <td>{{ $item->order_qty }}
-                                            <form action="javascript:void(0)" method="delete" data-id="{{ $item->id }}"
-                                                id="DeletePendingOrder">
-                                                @csrf
-                                                @method('delete')
-                                                <button type="submit"><i class="fa-solid fa-minus"></i></button>
-                                            </form>
-                                        </td>
-                                        <td>{{ number_format($item->total_price, 2) }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot>
-                                    <tr class="font-weight-bold">
-                                        <td colspan="3" class="text-right">Total Price:</td>
-                                        <td>{{ number_format($total, 2) }}</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                            <div class="form-group">
-                                <label for="customerSelect">Pelanggan</label>
-                                <select class="form-control" id="customerSelect" name="customer_DD">
-                                    <option value="">Pilih Pelanggan</option>
-                                    @foreach($customers as $customer)
-                                    <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
-                                    @endforeach
-                                    <option value="other">Lainnya (Isi Manual)</option>
-                                </select>
-                                <div id="manualEntry" class="manual-entry mt-2">
-                                    <label for="customerName">Masukan nama Pelanggan</label>
-                                    <input type="text" class="form-control" id="customerName" name="customer">
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <button type="submit" class="btn btn-primary mt-3">Checkout</button>
-                            </div>
-                        </form>
+        </div>
+
+        <!-- Invoice Card -->
+        <div class="container mt-4">
+            <div class="card" id="invoiceCard" style="display: none;">
+                <div class="card-header">
+                    <h5>Invoice</h5>
+                </div>
+                <div class="card-body">
+                    <div class="invoice-header">
+                        <h6>No. Invoice: <span id="invoiceId"></span></h6>
+                        <p>Tanggal: <span id="invoiceDate"></span></p>
                     </div>
 
-                    <br>
-
-                    <label for="paymentType">Tipe Pembayaran</label>
-                    <select class="form-control" id="paymentType" name="payment_type">
-                        <option value="">Pilih Tipe Pembayaran</option>
-                        <option value="cash">Cash</option>
-                        <option value="transfer">Transfer</option>
-                    </select>
-
-                    <div class="cash-section mt-3">
-                        <label for="cashGiven">Uang Dibayar</label>
-                        <input type="number" class="form-control" id="cashGiven" name="cash">
-                    </div>
-
-                    <div class="transfer-section mt-3">
-                        <label for="transferProof">Unggah Bukti Transfer</label>
-                        <input type="file" class="form-control-file" id="transferProof" name="transfer_proof">
+                    <div class="invoice-details mt-3">
+                        <h6>Detail Pemesanan</h6>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Kasir:</th>
+                                <td id="cashierName"></td>
+                            </tr>
+                            <tr>
+                                <th>Pelanggan:</th>
+                                <td id="customerNames"></td>
+                            </tr>
+                            <tr>
+                                <th>Total Harga:</th>
+                                <td id="grandTotal"></td>
+                            </tr>
+                            <tr>
+                                <th>Metode Pembayaran:</th>
+                                <td id="payments"></td>
+                            </tr>
+                            <tr id="cashRow" style="display: none;">
+                                <th>Uang Dibayar:</th>
+                                <td id="cashs"></td>
+                            </tr>
+                            <tr id="changesRow" style="display: none;">
+                                <th>Kembalian:</th>
+                                <td id="changes"></td>
+                            </tr>
+                            <tr id="transferProofRow" style="display: none;">
+                                <th>Bukti Transfer:</th>
+                                <td id="transferProofs"></td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
-
-            </div><!-- End Recent Activity -->
-
-
-        </div><!-- End Right side columns -->
-
+                <div class="card-footer text-right">
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">Kembali</button>
+                    <button type="button" class="btn btn-primary" onclick="window.print()">Print</button>
+                </div>
+            </div>
+        </div>
+        </div>
         </div>
     </section>
-
 </main><!-- End #main -->
-<div class="container mt-5">
-
-</div>
-
-<!-- Invoice Card -->
-<div class="container mt-4">
-    <div class="card" id="invoiceCard" style="display: none;">
-        <div class="card-header">
-            <h5>Invoice</h5>
-        </div>
-        <div class="card-body">
-            <div class="invoice-header">
-                <h6>No. Invoice: <span id="invoiceId"></span></h6>
-                <p>Tanggal: <span id="invoiceDate"></span></p>
-            </div>
-
-            <div class="invoice-details mt-3">
-                <h6>Detail Pemesanan</h6>
-                <table class="table table-bordered">
-                    <tr>
-                        <th>Kasir:</th>
-                        <td id="cashierName"></td>
-                    </tr>
-                    <tr>
-                        <th>Pelanggan:</th>
-                        <td id="customerNames"></td>
-                    </tr>
-                    <tr>
-                        <th>Total Harga:</th>
-                        <td id="grandTotal"></td>
-                    </tr>
-                    <tr>
-                        <th>Metode Pembayaran:</th>
-                        <td id="payments"></td>
-                    </tr>
-                    <tr id="cashRow" style="display: none;">
-                        <th>Uang Dibayar:</th>
-                        <td id="cashs"></td>
-                    </tr>
-                    <tr id="changesRow" style="display: none;">
-                        <th>Kembalian:</th>
-                        <td id="changes"></td>
-                    </tr>
-                    <tr id="transferProofRow" style="display: none;">
-                        <th>Bukti Transfer:</th>
-                        <td id="transferProofs"></td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-        <div class="card-footer text-right">
-            <button type="button" class="btn btn-secondary" onclick="window.history.back()">Kembali</button>
-            <button type="button" class="btn btn-primary" onclick="window.print()">Print</button>
-        </div>
-    </div>
-</div>
-
-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-
 <script type="text/javascript">
     $(document).ready(function() {
         // Function to calculate the total price
@@ -226,7 +273,11 @@
 
         calculateTotalPrice();
 
+        $('.cash-section').hide();
+        $('.transfer-section').hide();
+        $('#manualEntry').hide();
 
+        // Show/Hide berdasarkan pilihan tipe pembayaran
         $('#paymentType').on('change', function() {
             let paymentType = $(this).val();
             if (paymentType === 'cash') {
@@ -265,7 +316,7 @@
 
         // Handling customer select input
         $('#customerSelect').on('change', function() {
-            if ($(this).val() == 'other') {
+            if ($(this).val() === 'other') {
                 $('#manualEntry').show();
             } else {
                 $('#manualEntry').hide();
