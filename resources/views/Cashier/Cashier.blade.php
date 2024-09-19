@@ -1,15 +1,26 @@
 @extends('layouts.app')
 
 @section('contents')
+    <style>
+        .scrollable-product-list {
+            height: 500px;
+            overflow-y: scroll;
+        }
+
+        .sticky-checkout {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+    </style>
+
     <main id="main" class="main">
         <section class="section dashboard">
             <div class="row">
 
-                <div class="col-lg-8">
+                <div class="col-lg-8 scrollable-product-list">
                     <div class="row">
-
                         <div class="row mt-5">
-                            <h2>Product List</h2>
                             @foreach ($product as $index => $item)
                                 <div class="col-xxl-4 col-md-6 mb-4">
                                     <div class="card">
@@ -47,11 +58,10 @@
                                 </div>
                             @endforeach
                         </div>
-
                     </div>
                 </div>
 
-                <div class="col-lg-4">
+                <div class="col-lg-4                                                                  sticky-checkout">
 
                     <!-- Checkout List -->
                     <div class="container mt-5">
@@ -137,114 +147,68 @@
                         </div>
                     </div>
 
-                    <!-- Invoice Card -->
-                    <div class="container mt-4">
-                        <div class="card" id="invoiceCard" style="display: none;">
-                            <div class="card-header">
-                                <h5>Invoice</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="invoice-header">
-                                    <h6>No. Invoice: <span id="invoiceId"></span></h6>
-                                    <p>Tanggal: <span id="invoiceDate"></span></p>
-                                </div>
-
-                                <div class="invoice-details mt-3">
-                                    <h6>Detail Pemesanan</h6>
-                                    <table class="table table-bordered">
-                                        <tr>
-                                            <th>Kasir:</th>
-                                            <td id="cashierName"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Pelanggan:</th>
-                                            <td id="customerNames"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Total Harga:</th>
-                                            <td id="grandTotal"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Metode Pembayaran:</th>
-                                            <td id="payments"></td>
-                                        </tr>
-                                        <tr id="cashRow" style="display: none;">
-                                            <th>Uang Dibayar:</th>
-                                            <td id="cashs"></td>
-                                        </tr>
-                                        <tr id="changesRow" style="display: none;">
-                                            <th>Kembalian:</th>
-                                            <td id="changes"></td>
-                                        </tr>
-                                        <tr id="transferProofRow" style="display: none;">
-                                            <th>Bukti Transfer:</th>
-                                            <td id="transferProofs"></td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="card-footer text-right">
-                                <button type="button" class="btn btn-secondary"
-                                    onclick="window.history.back()">Kembali</button>
-                                <button type="button" class="btn btn-primary" onclick="window.print()">Print</button>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="container mt-5">
 
                     </div>
 
                     <!-- Invoice Card -->
-                    <div class="container mt-4">
-                        <div class="card" id="invoiceCard" style="display: none;">
-                            <div class="card-header">
-                                <h5>Invoice</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="invoice-header">
-                                    <h6>No. Invoice: <span id="invoiceId"></span></h6>
-                                    <p>Tanggal: <span id="invoiceDate"></span></p>
+                    <!-- Bootstrap Modal for Invoice -->
+                    <div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog"
+                        aria-labelledby="invoiceModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="invoiceModalLabel">Invoice</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
                                 </div>
+                                <div class="modal-body">
+                                    <div class="invoice-header">
+                                        <h6>No. Invoice: <span id="invoiceId"></span></h6>
+                                        <p>Tanggal: <span id="invoiceDate"></span></p>
+                                    </div>
 
-                                <div class="invoice-details mt-3">
-                                    <h6>Detail Pemesanan</h6>
-                                    <table class="table table-bordered">
-                                        <tr>
-                                            <th>Kasir:</th>
-                                            <td id="cashierName"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Pelanggan:</th>
-                                            <td id="customerNames"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Total Harga:</th>
-                                            <td id="grandTotal"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Metode Pembayaran:</th>
-                                            <td id="payments"></td>
-                                        </tr>
-                                        <tr id="cashRow" style="display: none;">
-                                            <th>Uang Dibayar:</th>
-                                            <td id="cashs"></td>
-                                        </tr>
-                                        <tr id="changesRow" style="display: none;">
-                                            <th>Kembalian:</th>
-                                            <td id="changes"></td>
-                                        </tr>
-                                        <tr id="transferProofRow" style="display: none;">
-                                            <th>Bukti Transfer:</th>
-                                            <td id="transferProofs"></td>
-                                        </tr>
-                                    </table>
+                                    <div class="invoice-details mt-3">
+                                        <h6>Detail Pemesanan</h6>
+                                        <table class="table table-bordered">
+                                            <tr>
+                                                <th>Kasir:</th>
+                                                <td id="cashierName"></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Pelanggan:</th>
+                                                <td id="customerNames"></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total Harga:</th>
+                                                <td id="grandTotal"></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Metode Pembayaran:</th>
+                                                <td id="payments"></td>
+                                            </tr>
+                                            <tr id="cashRow" style="display: none;">
+                                                <th>Uang Dibayar:</th>
+                                                <td id="cashs"></td>
+                                            </tr>
+                                            <tr id="changesRow" style="display: none;">
+                                                <th>Kembalian:</th>
+                                                <td id="changes"></td>
+                                            </tr>
+                                            <tr id="transferProofRow" style="display: none;">
+                                                <th>Bukti Transfer:</th>
+                                                <td id="transferProofs"></td>
+                                            </tr>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="card-footer text-right">
-                                <button type="button" class="btn btn-secondary"
-                                    onclick="window.history.back()">Kembali</button>
-                                <button type="button" class="btn btn-primary" onclick="window.print()">Print</button>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-dismiss="modal">Kembali</button>
+                                    <button type="button" class="btn btn-primary"
+                                        onclick="window.print()">Print</button>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\MainOrder;
+use App\Models\Order;
 use App\Models\Product;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
+
 
 class AdminController extends Controller
 {
@@ -105,4 +109,18 @@ class AdminController extends Controller
         return view('Admin.exportLaporanPDF', compact('mainOrders'));
     }
 
+    public function LaporanView()
+    {
+        $user = Auth::user()->name;
+        $mainOrders = MainOrder::with('orders')->where('cashier', $user)->get();
+
+        return view('Admin.LaporanView', compact('mainOrders', 'user'));
+    }
+
+    public function DetailLaporan($id)
+    {
+        $orders = Order::where('main_id', $id)->get();
+
+        return response()->json($orders);
+    }
 }
