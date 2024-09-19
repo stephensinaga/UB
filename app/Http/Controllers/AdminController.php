@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\MainOrder;
 use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
 
-    public function Dashboard(){
+    public function Dashboard()
+    {
         return view('dashboard');
     }
 
@@ -23,11 +26,11 @@ class AdminController extends Controller
     public function CreateProduct(Request $request)
     {
         $request->validate([
-        'product_name' => 'required|string|max:255',
-        'product_code' => 'required|string|max:255',
-        'product_category' => 'required|string|max:255',
-        'product_price' => 'required|numeric',
-        'product_images' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'product_name' => 'required|string|max:255',
+            'product_code' => 'required|string|max:255',
+            'product_category' => 'required|string|max:255',
+            'product_price' => 'required|numeric',
+            'product_images' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $category = Category::firstOrCreate(
@@ -85,4 +88,21 @@ class AdminController extends Controller
 
         return redirect(route('CreateProductView'));
     }
+
+    public function ExportLaporanPDF()
+    {
+        $mainOrders = MainOrder::with('orders')->get();
+
+        $pdf = Pdf::loadView('admin.exportLaporanPDF', compact('mainOrders'));
+
+        return $pdf->download('sales_report.pdf');
+    }
+
+    public function SalesReport()
+    {
+        $mainOrders = MainOrder::with('orders')->get();
+
+        return view('Admin.exportLaporanPDF', compact('mainOrders'));
+    }
+
 }

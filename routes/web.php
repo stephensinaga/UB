@@ -21,6 +21,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('delete/product/{id}', [AdminController::class, 'DeleteProduct'])->name('DeleteProduct');
         Route::get('edit/product/view/{id}', [AdminController::class, 'EditProductView'])->name('EditProductView');
         Route::put('edit/product/{id}', [AdminController::class, 'EditProduct'])->name('EditProductProcess');
+
+        Route::get('export/laporan/pdf', [AdminController::class, 'ExportLaporanPDF'])->name('ExportLaporanPDF');
+        Route::get('laporan/view', [AdminController::class, 'SalesReport'])->name('SalesReportView');
     });
 });
 
