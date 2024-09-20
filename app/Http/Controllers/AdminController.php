@@ -123,4 +123,19 @@ class AdminController extends Controller
 
         return response()->json($orders);
     }
+
+    public function printInvoice($id)
+    {
+        // Find the main order by id and load related orders
+        $mainOrder = MainOrder::with('orders')->find($id);
+
+        if (!$mainOrder) {
+            return redirect()->back()->with('error', 'Invoice not found.');
+        }
+
+        $pdf = Pdf::loadView('admin.invoice', compact('mainOrders'));
+
+        return $pdf->download('invoice.pdf');
+    }
+
 }

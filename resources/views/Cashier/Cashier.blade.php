@@ -151,7 +151,6 @@
 
                     </div>
 
-                    <!-- Invoice Card -->
                     <!-- Bootstrap Modal for Invoice -->
                     <div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog"
                         aria-labelledby="invoiceModalLabel" aria-hidden="true">
@@ -168,9 +167,7 @@
                                         <h6>No. Invoice: <span id="invoiceId"></span></h6>
                                         <p>Tanggal: <span id="invoiceDate"></span></p>
                                     </div>
-
                                     <div class="invoice-details mt-3">
-                                        <h6>Detail Pemesanan</h6>
                                         <table class="table table-bordered">
                                             <tr>
                                                 <th>Kasir:</th>
@@ -313,13 +310,11 @@
                     contentType: false, // Pastikan konten tidak di-encode
                     processData: false, // Jangan memproses data
                     success: function(result) {
-                        // Menampilkan alert bahwa checkout berhasil
                         alert('Pesanan berhasil di Checkout');
 
-                        // Ambil data invoice dari respons
-                        var invoice = result.invoice;
+                        var invoice = result.invoice; // Ambil data invoice dari respons
 
-                        // Tampilkan data di Invoice Card
+                        // Tampilkan data invoice di modal
                         $('#invoiceId').text(invoice.id);
                         $('#invoiceDate').text(new Date(invoice.created_at)
                             .toLocaleDateString());
@@ -336,8 +331,8 @@
                         if (invoice.payment === 'cash') {
                             $('#cashRow').show();
                             $('#changesRow').show();
-                            $('#cashs').text('Rp ' + parseFloat(invoice.cash)
-                                .toLocaleString('id-ID', {
+                            $('#cashs').text('Rp ' + parseFloat(invoice.cash).toLocaleString(
+                                'id-ID', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }));
@@ -351,14 +346,16 @@
                             $('#cashRow').hide();
                             $('#changesRow').hide();
                             $('#transferProofRow').show();
-                            $('#transferProofs').text('Lihat bukti transfer');
                             $('#transferProofs').html('<a href="/storage/' + invoice
                                 .transfer_image +
                                 '" target="_blank">Lihat Bukti Transfer</a>');
                         }
 
-                        // Tampilkan Invoice Card
-                        $('#invoiceCard').show();
+                        // Tampilkan modal invoice
+                        $('#invoiceModal').modal('show');
+                        $('.modal-backdrop').remove();
+
+
                     },
                     error: function(xhr, status, error) {
                         console.log(xhr.responseText);
