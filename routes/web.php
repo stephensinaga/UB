@@ -37,7 +37,7 @@ Route::prefix('cashier')->group(function () {
     Route::post('order/selected/product/{id}', [CashierController::class, 'Order'])->name('OrderProduct');
     Route::post('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');
     Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItem'])->name('MinOrderItem');
-
+    Route::get('print/invoice/{id}', [CashierController::class, 'PrintInvoice'])->name('PrintInvoice');
     Route::get('/cashier/print/invoice/{id}', [CashierController::class, 'downloadInvoice'])->name('download.invoice');
 
 
