@@ -8,7 +8,7 @@
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title">Basic Modal</h5>
+                <h5 class="modal-title">Add Product</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
@@ -56,7 +56,16 @@
 
         <div class="card mt-5 p-3">
             <div class="d-flex justify-content-between align-items-center">
-                <h2>Product List</h2>
+                <form method="GET" action="{{ route('CreateProductView') }}" class="d-flex">
+                    <input type="text" name="search" class="form-control me-2" placeholder="Search by Name or Code" value="{{ request()->search }}">
+                    <select name="category" class="form-select me-2">
+                        <option value="">All Categories</option>
+                        @foreach($category as $cat)
+                            <option value="{{ $cat->category }}" {{ request()->category == $cat->category ? 'selected' : '' }}>{{ $cat->category }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </form>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#basicModal">
                     Add Product
                 </button>

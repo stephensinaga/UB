@@ -6,63 +6,43 @@ use App\Models\Customer;
 use App\Models\MainOrder;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 
 class CashierController extends Controller
 {
-    // public function filter(Request $request)
-    // {
-    //     $query = Product::query();
-
-    //     if ($request->filled('product_name')) {
-    //         $query->where('product_name', 'like', '%' . $request->product_name . '%');
-    //     }
-
-    //     // Filter by product code
-    //     if ($request->filled('product_code')) {
-    //         $query->where('product_code', 'like', '%' . $request->product_code . '%');
-    //     }
-
-    //     // Filter by category
-    //     if ($request->filled('product_category')) {
-    //         $query->where('product_category', $request->product_category);
-    //     }
-
-    //     $product = $query->get();
-
-    //     $order = Order::where('status', 'pending')->get();
-    //     $productIds = $order->pluck('product_id')->toArray();
-        
-    //     // Handling pending products
-    //     $pendingProduct = Product::whereIn('id', $productIds)->get()->map(function ($product) use ($order) {
-    //         $product->order_qty = $order->where('product_id', $product->id)->count();
-    //         $product->total_price = $product->product_price * $product->order_qty;
-    //         return $product;
-    //     });
-
-    //     $total = $pendingProduct->sum('total_price');
-    //     $customers = Customer::all();
-
-    //     return view('Cashier.Cashier', compact('product', 'order', 'total', 'customers', 'pendingProduct'));
-    // }
-
-
-    public function CashierView()
+    public function CashierView(Request $request)
     {
-        $product = Product::all();
-
+        $search = $request->input('search');
+        $category = $request->input('category');
+    
+        $productQuery = Product::query();  // Mulai dari query builder
+    
+        if ($search) {
+            $productQuery->where(function ($query) use ($search) {
+                $query->where('product_name', 'like', '%' . $search . '%')
+                      ->orWhere('product_code', 'like', '%' . $search . '%');
+            });
+        }
+    
+        if ($category) {
+            $productQuery->where('product_category', $category);  // Tambahkan ke query builder
+        }
+    
+        $product = $productQuery->get();  // Panggil get() hanya setelah semua query selesai
+        $categories = Category::all();
+    
         $order = Order::whereNull('main_id')->get();
-
         $customers = Customer::all();
-
         $invoice = MainOrder::latest()->first();
-
-        return view('Cashier.Cashier', compact('product', 'order', 'customers', 'invoice'));
-    }
-
+    
+        return view('Cashier.Cashier', compact('product', 'order', 'customers', 'invoice', 'category', 'categories'));
+    }    
+    
     public function Order($id)
     {
         $product = Product::where('id', $id)->first();
@@ -157,6 +137,13 @@ class CashierController extends Controller
 
         $invoice = MainOrder::where('id', $Checkout->id)->first();
 
-        return response()->json(['message' => 'Checkout berhasil', 'invoice' => $invoice,], 200);
+        $pdf = FacadePdf::loadView('struk.invoice_template', compact('invoice', 'orders', 'customer'))
+        ->setPaper([0, 0, 226.77, 841.89]); // Ukuran 80mm (80mm x panjang)
+
+        return response()->json([
+            'message' => 'Checkout berhasil',
+            'invoice' => $invoice,
+            'pdf_url' => route('download.invoice', $Checkout->id) // URL download (opsional)
+        ], 200);
     }
 }

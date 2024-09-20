@@ -13,12 +13,29 @@ class AdminController extends Controller
         return view('dashboard');
     }
 
-    public function CreateProductView()
+    public function CreateProductView(Request $request)
     {
-        $items = Product::all();
+        $query = Product::query();
+    
+        // Filter by search (name or code)
+        if ($request->has('search') && $request->search != '') {
+            $query->where(function ($q) use ($request) {
+                $q->where('product_name', 'like', '%' . $request->search . '%')
+                  ->orWhere('product_code', 'like', '%' . $request->search . '%');
+            });
+        }
+    
+        // Filter by category
+        if ($request->has('category') && $request->category != '') {
+            $query->where('product_category', $request->category);
+        }
+    
+        $items = $query->get();
         $category = Category::all();
+    
         return view('Admin.createProduct', compact('items', 'category'));
     }
+        
 
     public function CreateProduct(Request $request)
     {
@@ -85,4 +102,6 @@ class AdminController extends Controller
 
         return redirect(route('CreateProductView'));
     }
+
+    
 }
