@@ -21,6 +21,14 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('delete/product/{id}', [AdminController::class, 'DeleteProduct'])->name('DeleteProduct');
         Route::get('edit/product/view/{id}', [AdminController::class, 'EditProductView'])->name('EditProductView');
         Route::put('edit/product/{id}', [AdminController::class, 'EditProduct'])->name('EditProductProcess');
+
+        // Bagian Laporan Pembelian
+        Route::get('export/laporan/pdf', [AdminController::class, 'ExportLaporanPDF'])->name('ExportLaporanPDF'); //Function Download Laporan PDF
+        Route::get('laporan/view', [AdminController::class, 'SalesReport'])->name('SalesReportView'); //View Export Laporan PDF
+        Route::get('history/penjualan', [AdminController::class, 'LaporanView'])->name('LaporanView'); //View Laporan Penjualan per User
+        Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporan'])->name('DetailLaporan'); //Endpoint Detail Pembelian Tiap Customer
+
+
     });
 });
 

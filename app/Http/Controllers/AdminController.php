@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\MainOrder;
+use App\Models\Order;
 use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
+
 
 class AdminController extends Controller
 {
 
-    public function Dashboard(){
+    public function Dashboard()
+    {
         return view('dashboard');
     }
 
@@ -40,11 +47,11 @@ class AdminController extends Controller
     public function CreateProduct(Request $request)
     {
         $request->validate([
-        'product_name' => 'required|string|max:255',
-        'product_code' => 'required|string|max:255',
-        'product_category' => 'required|string|max:255',
-        'product_price' => 'required|numeric',
-        'product_images' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'product_name' => 'required|string|max:255',
+            'product_code' => 'required|string|max:255',
+            'product_category' => 'required|string|max:255',
+            'product_price' => 'required|numeric',
+            'product_images' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $category = Category::firstOrCreate(
@@ -103,5 +110,50 @@ class AdminController extends Controller
         return redirect(route('CreateProductView'));
     }
 
-    
+    public function ExportLaporanPDF()
+    {
+        $mainOrders = MainOrder::with('orders')->get();
+
+        $pdf = Pdf::loadView('admin.exportLaporanPDF', compact('mainOrders'));
+
+        return $pdf->download('sales_report.pdf');
+    }
+
+    public function SalesReport()
+    {
+        $mainOrders = MainOrder::with('orders')->get();
+
+        return view('Admin.exportLaporanPDF', compact('mainOrders'));
+    }
+
+    public function LaporanView()
+    {
+        $user = Auth::user()->name;
+        $mainOrders = MainOrder::with('orders')->where('cashier', $user)->get();
+
+        return view('Admin.LaporanView', compact('mainOrders', 'user'));
+    }
+
+    public function DetailLaporan($id)
+    {
+        $orders = Order::where('main_id', $id)->get();
+
+        return response()->json($orders);
+    }
+
+    public function printInvoice($id)
+    {
+        // Find the main order by id and load related orders
+        $mainOrder = MainOrder::with('orders')->find($id);
+
+        if (!$mainOrder) {
+            return redirect()->back()->with('error', 'Invoice not found.');
+        }
+
+        $pdf = Pdf::loadView('admin.invoice', compact('mainOrders'));
+
+        return $pdf->download('invoice.pdf');
+    }
+
 }
+
