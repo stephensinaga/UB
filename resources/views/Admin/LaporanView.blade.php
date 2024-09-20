@@ -1,21 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Laporan Penjualan</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-</head>
+@extends('layouts.app')
+@section('content')
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
 <body>
     <div class="container mt-5">
         <h1 class="text-center mb-4">Laporan Penjualan</h1>
 
         <!-- Data Table -->
+         
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
@@ -34,27 +28,27 @@
             </thead>
             <tbody>
                 @foreach ($mainOrders as $order)
-                    <tr>
-                        <td>{{ $order->id }}</td>
-                        <td>{{ $order->cashier }}</td>
-                        <td>{{ $order->customer }}</td>
-                        <td>{{ number_format($order->grandtotal, 0, ',', '.') }}</td>
-                        <td>{{ ucfirst($order->payment) }}</td>
-                        <td>{{ number_format($order->cash, 0, ',', '.') }}</td>
-                        <td>{{ number_format($order->changes, 0, ',', '.') }}</td>
-                        <td>{{ ucfirst($order->status) }}</td>
-                        <td>
-                            @if ($order->transfer_image)
-                                <a href="{{ asset('storage/' . $order->transfer_image) }}" target="_blank">View Image</a>
-                            @else
-                                N/A
-                            @endif
-                        </td>
-                        <td>{{ $order->created_at->format('d M Y') }}</td>
-                        <td>
-                            <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#detailModal" data-id="{{ $order->id }}">Detail</button>
-                        </td>
-                    </tr>
+                <tr>
+                    <td>{{ $order->id }}</td>
+                    <td>{{ $order->cashier }}</td>
+                    <td>{{ $order->customer }}</td>
+                    <td>{{ number_format($order->grandtotal, 0, ',', '.') }}</td>
+                    <td>{{ ucfirst($order->payment) }}</td>
+                    <td>{{ number_format($order->cash, 0, ',', '.') }}</td>
+                    <td>{{ number_format($order->changes, 0, ',', '.') }}</td>
+                    <td>{{ ucfirst($order->status) }}</td>
+                    <td>
+                        @if ($order->transfer_image)
+                        <a href="{{ asset('storage/' . $order->transfer_image) }}" target="_blank">View Image</a>
+                        @else
+                        N/A
+                        @endif
+                    </td>
+                    <td>{{ $order->created_at->format('d M Y') }}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#detailModal" data-id="{{ $order->id }}">Detail</button>
+                    </td>
+                </tr>
                 @endforeach
             </tbody>
         </table>
@@ -91,8 +85,8 @@
     </div>
 
     <script>
-        $(document).ready(function () {
-            $('#detailModal').on('show.bs.modal', function (event) {
+        $(document).ready(function() {
+            $('#detailModal').on('show.bs.modal', function(event) {
                 var button = $(event.relatedTarget);
                 var orderId = button.data('id');
 
@@ -101,8 +95,8 @@
                 $.ajax({
                     url: '/admin/detail/pembelian/customer/' + orderId,
                     type: 'GET',
-                    success: function (data) {
-                        data.forEach(function (item) {
+                    success: function(data) {
+                        data.forEach(function(item) {
                             $('#order-details').append(`
                                 <tr>
                                     <td>${item.product_name}</td>
@@ -119,5 +113,3 @@
         });
     </script>
 </body>
-
-</html>

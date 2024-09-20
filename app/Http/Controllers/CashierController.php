@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use Barryvdh\DomPDF\Facade\Pdf;
-
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use Mike42\Escpos\Printer;
 
 class CashierController extends Controller
 {
@@ -140,7 +141,7 @@ class CashierController extends Controller
         $invoice = MainOrder::where('id', $Checkout->id)->first();
 
         $pdf = FacadePdf::loadView('struk.invoice_template', compact('invoice', 'orders', 'customer'))
-        ->setPaper([0, 0, 226.77, 841.89]); // Ukuran 80mm (80mm x panjang)
+            ->setPaper([0, 0, 226.77, 841.89]); // Ukuran 80mm (80mm x panjang)
 
         return response()->json([
             'message' => 'Checkout berhasil',
@@ -149,15 +150,103 @@ class CashierController extends Controller
         ], 200);
     }
 
-    public function PrintInvoice($id)
+    public function printInvoice($id)
     {
+        // Temukan main order berdasarkan id dan muat relasi orders
         $mainOrder = MainOrder::with('orders')->find($id);
+
         if (!$mainOrder) {
-            return redirect()->back()->with('error', 'Invoice not found.');
+            return response()->json(['error' => 'Invoice not found.'], 404);
         }
 
-        $pdf = PDF::loadView('cashier.invoice', compact('mainOrder'));
+        // Cetak invoice
+        $result = $this->printToThermalPrinter($mainOrder);
 
-        return $pdf->stream('invoice.pdf');
+        if ($result['success']) {
+            return response()->json(['success' => 'Invoice printed successfully!']);
+        } else {
+            return response()->json(['error' => $result['error']], 500);
+        }
+    }
+
+    private function printToThermalPrinter($mainOrder)
+    {
+        $connector = new WindowsPrintConnector("smb://HW-05/aoa");
+
+        try {
+            // Ganti dengan konektor printer Anda
+            $connector = new WindowsPrintConnector("aoa");
+            $printer = new Printer($connector);
+
+            // Mencetak Header
+            $printer->setEmphasis(true);
+            $printer->text("INVOICE\n");
+            $printer->setEmphasis(false);
+            $printer->text("-----------------------------\n");
+
+            // Mencetak Detail Order
+            $printer->text("Invoice No: {$mainOrder->id}\n");
+            $printer->text("Date: {$mainOrder->created_at->format('d/m/Y')}\n");
+            $printer->text("Cashier: {$mainOrder->cashier}\n");
+            $printer->text("Customer: {$mainOrder->customer}\n");
+            $printer->text("Payment Method: " . ucfirst($mainOrder->payment) . "\n");
+
+            if ($mainOrder->payment === 'cash') {
+                $printer->text("Paid: Rp" . number_format($mainOrder->cash, 0, ',', '.') . "\n");
+            } else {
+                $printer->text("Transfer Proof: See Attached\n");
+            }
+
+            // Mencetak Detail Produk
+            $printer->text("-----------------------------\n");
+            $printer->text("Product\t\tQty\tPrice\tTotal\n");
+            $printer->text("-----------------------------\n");
+
+            foreach ($mainOrder->orders as $order) {
+                $printer->text("{$order->product_name}\t{$order->qty}\tRp" . number_format($order->product_price, 0, ',', '.') . "\tRp" . number_format($order->qty * $order->product_price, 0, ',', '.') . "\n");
+            }
+
+            // Mencetak Total
+            $printer->text("-----------------------------\n");
+            $printer->text("Total: Rp" . number_format($mainOrder->grandtotal, 0, ',', '.') . "\n");
+
+            if ($mainOrder->payment === 'cash') {
+                $printer->text("Cash Paid: Rp" . number_format($mainOrder->cash, 0, ',', '.') . "\n");
+                $printer->text("Change: Rp" . number_format($mainOrder->changes, 0, ',', '.') . "\n");
+            }
+
+            $printer->text("-----------------------------\n");
+            $printer->text("Thank you for your purchase!\n");
+
+            // Memotong kertas
+            $printer->cut();
+
+            // Tutup koneksi printer
+            $printer->close();
+
+            return ['success' => true];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    public function testPrinterConnection()
+    {
+        // Ganti dengan nama printer Anda
+        $printerName = "MINIPOS"; // Sesuaikan dengan nama printer Anda
+        $connector = new WindowsPrintConnector($printerName);
+
+        try {
+            $printer = new Printer($connector);
+
+            // Mencetak teks uji
+            $printer->text("Test Print - Printer Connection Successful\n");
+            $printer->cut();
+            $printer->close();
+
+            return response()->json(['success' => 'Printer connection successful!'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Printer connection failed: ' . $e->getMessage()], 500);
+        }
     }
 }

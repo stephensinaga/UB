@@ -25,7 +25,7 @@ Route::middleware(['auth'])->group(function () {
         // Bagian Laporan Pembelian
         Route::get('export/laporan/pdf', [AdminController::class, 'ExportLaporanPDF'])->name('ExportLaporanPDF'); //Function Download Laporan PDF
         Route::get('laporan/view', [AdminController::class, 'SalesReport'])->name('SalesReportView'); //View Export Laporan PDF
-        Route::get('history/penjualan', [AdminController::class, 'LaporanView'])->name('LaporanView'); //View Laporan Penjualan per User
+        Route::get('history/penjualan', [AdminController::class, 'HistoryPenjualan'])->name('HistoryPenjualan'); //View Laporan Penjualan per User
         Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporan'])->name('DetailLaporan'); //Endpoint Detail Pembelian Tiap Customer
 
 
@@ -37,8 +37,10 @@ Route::prefix('cashier')->group(function () {
     Route::post('order/selected/product/{id}', [CashierController::class, 'Order'])->name('OrderProduct');
     Route::post('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');
     Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItem'])->name('MinOrderItem');
-    Route::get('print/invoice/{id}', [CashierController::class, 'PrintInvoice'])->name('PrintInvoice');
+    Route::get('print/invoice/{id}', [CashierController::class, 'testPrinterConnection'])->name('PrintInvoice');
     Route::get('/cashier/print/invoice/{id}', [CashierController::class, 'downloadInvoice'])->name('download.invoice');
+
+
 
 
     // Route::put('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');

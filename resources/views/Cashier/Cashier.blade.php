@@ -101,7 +101,6 @@
                                 </tr>
                             </tfoot>
                         </table>
-
                         <!-- Checkout Form -->
                         <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
                             @csrf
@@ -230,21 +229,29 @@
             $('.transfer-section').toggle(paymentType === 'transfer');
         });
 
-        // Function to calculate the total price
         function calculateTotalPrice() {
             let totalPrice = 0;
 
             $('tbody tr').each(function() {
-                let price = parseFloat($(this).find('td:nth-child(2)').text().replace(/[^0-9.-]+/g, ''));
-                let qty = parseInt($(this).find('td:nth-child(3)').text());
+                let price = $(this).find('td:nth-child(2)').text().trim();
+                price = parseFloat(price.replace(/[^0-9.-]+/g, ''));
+
+                let qty = $(this).find('td:nth-child(3)').text().trim();
+                qty = parseInt(qty);
 
                 if (!isNaN(price) && !isNaN(qty)) {
-                    totalPrice += price * qty;
+                    let totalItemPrice = price * qty;
+                    totalPrice += totalItemPrice;
                 }
             });
 
-            return totalPrice; // Return the total price
+            $('tfoot tr td:last-child').text(totalPrice.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
         }
+
+        calculateTotalPrice();
 
         // Ordering a product
         $('tbody').on('submit', '.OrderProduct', function(event) {
@@ -326,6 +333,7 @@
             $('.modal-backdrop').remove();
         }
 
+
         // Reducing item quantity
         $('tbody').on('submit', '.MinOrderItem', function(event) {
             event.preventDefault();
@@ -349,17 +357,23 @@
             });
         });
 
-        $('#PrintInvoice').on('click', function() {
-            var invoiceId = $(this).data('id');
+        $('#PrintInvoice').click(function() {
+            // Ambil ID invoice dari elemen modal
+            var invoiceId = $('#invoiceId').text();
+
+            // Lakukan permintaan AJAX untuk mencetak invoice
             $.ajax({
-                url: '/print/invoice/' + invoiceId,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/cashier/print/invoice/' + invoiceId, // Sesuaikan dengan route Anda
                 type: 'GET',
                 success: function(response) {
-                    // Handle the successful print response here
-                    window.open(response.url, '_blank'); // Assuming the response has a URL
+                    alert(response.success);
                 },
                 error: function(xhr) {
-                    alert('Failed to print invoice.');
+                    var errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'An error occurred.';
+                    alert('Error printing invoice: ' + errorMessage);
                 }
             });
         });

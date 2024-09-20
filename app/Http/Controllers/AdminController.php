@@ -9,6 +9,8 @@ use App\Models\Product;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use Mike42\Escpos\Printer;
 use Yajra\DataTables\Facades\DataTables;
 
 
@@ -23,26 +25,26 @@ class AdminController extends Controller
     public function CreateProductView(Request $request)
     {
         $query = Product::query();
-    
+
         // Filter by search (name or code)
         if ($request->has('search') && $request->search != '') {
             $query->where(function ($q) use ($request) {
                 $q->where('product_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('product_code', 'like', '%' . $request->search . '%');
+                    ->orWhere('product_code', 'like', '%' . $request->search . '%');
             });
         }
-    
+
         // Filter by category
         if ($request->has('category') && $request->category != '') {
             $query->where('product_category', $request->category);
         }
-    
+
         $items = $query->get();
         $category = Category::all();
-    
+
         return view('Admin.createProduct', compact('items', 'category'));
     }
-        
+
 
     public function CreateProduct(Request $request)
     {
@@ -126,12 +128,18 @@ class AdminController extends Controller
         return view('Admin.exportLaporanPDF', compact('mainOrders'));
     }
 
-    public function LaporanView()
+    public function HistoryPenjualan()
     {
         $user = Auth::user()->name;
         $mainOrders = MainOrder::with('orders')->where('cashier', $user)->get();
 
         return view('Admin.LaporanView', compact('mainOrders', 'user'));
+    }
+
+    public function DownloadHistoryCashier()
+    {
+        $user = Auth::user()->name;
+        $mainOrders = MainOrder::with('orders')->where('cashier', $user)->get();
     }
 
     public function DetailLaporan($id)
@@ -141,19 +149,4 @@ class AdminController extends Controller
         return response()->json($orders);
     }
 
-    public function printInvoice($id)
-    {
-        // Find the main order by id and load related orders
-        $mainOrder = MainOrder::with('orders')->find($id);
-
-        if (!$mainOrder) {
-            return redirect()->back()->with('error', 'Invoice not found.');
-        }
-
-        $pdf = Pdf::loadView('admin.invoice', compact('mainOrders'));
-
-        return $pdf->download('invoice.pdf');
-    }
-
 }
-
