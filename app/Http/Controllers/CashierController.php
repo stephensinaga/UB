@@ -6,27 +6,43 @@ use App\Models\Customer;
 use App\Models\MainOrder;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade as PDF;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 
 class CashierController extends Controller
 {
-    public function CashierView()
+    public function CashierView(Request $request)
     {
-        $product = Product::all();
-
+        $search = $request->input('search');
+        $category = $request->input('category');
+    
+        $productQuery = Product::query();  // Mulai dari query builder
+    
+        if ($search) {
+            $productQuery->where(function ($query) use ($search) {
+                $query->where('product_name', 'like', '%' . $search . '%')
+                      ->orWhere('product_code', 'like', '%' . $search . '%');
+            });
+        }
+    
+        if ($category) {
+            $productQuery->where('product_category', $category);  // Tambahkan ke query builder
+        }
+    
+        $product = $productQuery->get();  // Panggil get() hanya setelah semua query selesai
+        $categories = Category::all();
+    
         $order = Order::whereNull('main_id')->get();
-
         $customers = Customer::all();
-
         $invoice = MainOrder::latest()->first();
-
-        return view('Cashier.Cashier', compact('product', 'order', 'customers', 'invoice'));
-    }
-
+    
+        return view('Cashier.Cashier', compact('product', 'order', 'customers', 'invoice', 'category', 'categories'));
+    }    
+    
     public function Order($id)
     {
         $product = Product::where('id', $id)->first();
@@ -121,7 +137,7 @@ class CashierController extends Controller
 
         $invoice = MainOrder::where('id', $Checkout->id)->first();
 
-        $pdf = PDF::loadView('struk.invoice_template', compact('invoice', 'orders', 'customer'))
+        $pdf = FacadePdf::loadView('struk.invoice_template', compact('invoice', 'orders', 'customer'))
         ->setPaper([0, 0, 226.77, 841.89]); // Ukuran 80mm (80mm x panjang)
 
         return response()->json([

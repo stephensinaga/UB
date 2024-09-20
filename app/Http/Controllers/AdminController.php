@@ -35,7 +35,7 @@ class AdminController extends Controller
     
         return view('Admin.createProduct', compact('items', 'category'));
     }
-    
+        
 
     public function CreateProduct(Request $request)
     {

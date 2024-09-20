@@ -9,39 +9,62 @@
             <div class="row">
 
             <div class="row mt-5">
-            @foreach($product as $index => $item)
-            <div class="col-xxl-4 col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <!-- Pindahkan nama produk ke bagian paling atas -->
-                        <h4 style="font-size:15px" class="card-title">{{ $item->product_name }}</h4>
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
-                                @if($item->product_images)
-                                <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" style="width: 100%; height: 100%; object-fit: cover;">
-                                @else
-                                <i class="bi bi-cart" style="font-size: 3rem;"></i>
-                                @endif
-                            </div>
-                            <div class="ps-3" style="flex-grow: 1;">
-                                <h6 style="font-size: 20px;">Rp{{ number_format($item->product_price, 2) }}</h6>
-                                <p class="text-muted small">{{ $item->product_code }}</p>
-                                <!-- Hapus kategori produk -->
-                                
-                                <form method="post" class="OrderProduct" data-id="{{ $item->id }}"
-                                    action="{{ url('/cashier/order/selected/product/' . $item->id) }}">
-                                    @csrf
-                                    <button type="submit" class="btn btn-primary mt-2">
-                                        <i class="bi bi-plus"></i> Order
-                                    </button>
-                                </form>
+
+                <!-- Form Pencarian -->
+                <form method="GET" action="{{ route('CashierView') }}" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" name="search" class="form-control" placeholder="Cari berdasarkan Nama Produk atau Kode" value="{{ request('search') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <select name="category" class="form-control">
+                                <option value="">Semua Kategori</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->category }}">
+                                        {{ $category->category }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                        </div>
+                    </div>
+                </form>
+
+                @foreach($product as $index => $item)
+                <div class="col-xxl-4 col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <!-- Pindahkan nama produk ke bagian paling atas -->
+                            <h4 style="font-size:15px" class="card-title">{{ $item->product_name }}</h4>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                                    @if($item->product_images)
+                                    <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" style="width: 100%; height: 100%; object-fit: cover;">
+                                    @else
+                                    <i class="bi bi-cart" style="font-size: 3rem;"></i>
+                                    @endif
+                                </div>
+                                <div class="ps-3" style="flex-grow: 1;">
+                                    <h6 style="font-size: 20px;">Rp{{ number_format($item->product_price, 2) }}</h6>
+                                    <p class="text-muted small">{{ $item->product_code }}</p>
+                                    <!-- Hapus kategori produk -->
+                                    
+                                    <form method="post" class="OrderProduct" data-id="{{ $item->id }}"
+                                        action="{{ url('/cashier/order/selected/product/' . $item->id) }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary mt-2">
+                                            <i class="bi bi-plus"></i> Order
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                @endforeach
             </div>
-            @endforeach
-        </div>
 
     </div>
         </div>
