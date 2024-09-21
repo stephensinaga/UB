@@ -46,8 +46,7 @@
                                                 <h6 class="product-price" style="font-size: 1rem;">Rp{{ number_format($item->product_price, 2) }}</h6> <!-- Ukuran font responsif -->
                                                 <p class="text-muted small product-code">{{ $item->product_code }}</p> <!-- CSS responsif -->
 
-                                                <form method="post" class="OrderProduct" data-id="{{ $item->id }}"
-                                                    action="{{ url('/cashier/order/selected/product/' . $item->id) }}">
+                                                <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
                                                     @csrf
                                                     <button type="submit" class="btn btn-primary mt-2">
                                                         <i class="bi bi-plus"></i> Order
@@ -68,39 +67,42 @@
                 <div class="container mt-5">
                     <div class="card shadow-sm p-4">
                         <h2 class="mb-4">Checkout List</h2>
-                        <table class="table table-bordered table-hover table-striped">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th>Product Name</th>
-                                    <th>Product Price</th>
-                                    <th>Product Qty</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($order as $item)
-                                <tr>
-                                    <td>{{ $item->product_name }}</td>
-                                    <td>{{ number_format($item->product_price, 2) }}</td>
-                                    <td>
-                                        {{ $item->qty }}
-                                        <form method="post" class="MinOrderItem" data-id="{{ $item->id }}">
-                                            @csrf
-                                            @method('PUT')
-                                            <button type="submit">Reduce</button>
-                                        </form>
-                                    </td>
-                                    <td>{{ number_format($item->qty * $item->product_price, 2) }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                            <tfoot>
-                                <tr class="font-weight-bold">
-                                    <td colspan="3" class="text-right">Total Price:</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-striped">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Product Price</th>
+                                        <th>Product Qty</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($order as $item)
+                                    <tr>
+                                        <td>{{ $item->product_name }}</td>
+                                        <td>{{ number_format($item->product_price, 2) }}</td>
+                                        <td>
+                                            {{ $item->qty }}
+                                            <form method="post" class="MinOrderItem d-inline-block" data-id="{{ $item->id }}">
+                                                @csrf
+                                                @method('PUT')
+                                                <button type="submit" class="btn btn-sm btn-danger">-</button>
+                                            </form>
+                                        </td>
+                                        <td>{{ number_format($item->qty * $item->product_price, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr class="font-weight-bold">
+                                        <td colspan="3" class="text-right">Total Price:</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
                         <!-- Checkout Form -->
                         <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
                             @csrf
@@ -143,8 +145,11 @@
                                 </div>
 
                             </div>
+                        </form>
                     </div>
-                    </form> <!-- Closing div for Checkout Form -->
+                </div>
+            </div>
+                </form> <!-- Closing div for Checkout Form -->
 
                     <!-- Bootstrap Modal for Invoice -->
                     <div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog"
@@ -254,7 +259,7 @@
         calculateTotalPrice();
 
         // Ordering a product
-        $('tbody').on('submit', '.OrderProduct', function(event) {
+        $('.OrderProduct').on('submit', function(event) {
             event.preventDefault();
             let id = $(this).data('id');
             let url = `/cashier/order/selected/product/${id}`;
@@ -267,12 +272,12 @@
                 },
                 data: $(this).serialize(),
                 success: function(result) {
-                    alert(result.message || 'Product Berhasil di Pesan');
+                    // Jalankan kode lainnya di sini, misalnya reload halaman tanpa alert
                     location.reload();
                 },
                 error: function(xhr) {
                     console.error(xhr.responseText);
-                    alert('Gagal Memesan Product.');
+                    alert('Gagal Memesan Product.'); // Kamu bisa menghilangkan alert ini juga jika tidak diperlukan
                 }
             });
         });

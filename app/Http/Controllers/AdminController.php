@@ -19,8 +19,15 @@ class AdminController extends Controller
 
     public function Dashboard()
     {
-        return view('dashboard');
+        $penjualan = MainOrder::whereDate('created_at', now()->toDateString())->count();
+
+        $subPenjualan = Order::whereDate('created_at', now()->toDateString())->sum('qty');
+
+        $customer = MainOrder::whereDate('created_at', now()->toDateString())->distinct('customer')->count('customer');
+
+        return view('dashboard', compact('penjualan', 'subPenjualan', 'customer'));
     }
+
 
     public function CreateProductView(Request $request)
     {
@@ -128,13 +135,33 @@ class AdminController extends Controller
         return view('Admin.exportLaporanPDF', compact('mainOrders'));
     }
 
-    public function HistoryPenjualan()
+    public function HistoryPenjualan(Request $request)
     {
         $user = Auth::user()->name;
-        $mainOrders = MainOrder::with('orders')->where('cashier', $user)->get();
 
-        return view('Admin.LaporanView', compact('mainOrders', 'user'));
+        $mainOrdersQuery = MainOrder::with('orders')->where('cashier', $user);
+
+        if ($request->has('payment_method') && $request->payment_method != '') {
+            $mainOrdersQuery->where('payment', $request->payment_method);
+        }
+
+        if ($request->has('customer') && $request->customer != '') {
+            $mainOrdersQuery->where('customer', $request->customer);
+        }
+
+        $mainOrdersQuery->whereDate('created_at', now()->toDateString());
+
+        $mainOrders = $mainOrdersQuery->get();
+
+        $customers = MainOrder::distinct('customer')->pluck('customer');
+
+        if ($request->ajax()) {
+            return response()->json(['orders' => $mainOrders]);
+        }
+
+        return view('Admin.LaporanView', compact('mainOrders', 'user', 'customers'));
     }
+
 
     public function DownloadHistoryCashier()
     {
@@ -148,5 +175,4 @@ class AdminController extends Controller
 
         return response()->json($orders);
     }
-
 }

@@ -1,15 +1,49 @@
 @extends('layouts.app')
-@section('content')
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
-<body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Laporan Penjualan</h1>
+@section('contents')
+            <!-- Main Content -->
+<main id="main" class="main">
+    <h1 class="text-center mb-4">Laporan Penjualan</h1>
 
-        <!-- Data Table -->
-         
+    <!-- Filter Form -->
+<div class="filter-section bg-light p-4 mb-4 rounded shadow-sm">
+        <form method="GET" action="{{ route('HistoryPenjualan') }}" class="mb-4">
+            <div class="row">
+                <!-- Payment Method Filter -->
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="payment_method">Metode Pembayaran</label>
+                        <select class="form-control form-control-sm" id="payment_method" name="payment_method">
+                            <option value="">Semua</option>
+                            <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
+                            <option value="transfer" {{ request('payment_method') == 'transfer' ? 'selected' : '' }}>Transfer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Customer Filter -->
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="customer">Customer</label>
+                        <select class="form-control form-control-sm" id="customer" name="customer">
+                            <option value="">Semua Customer</option>
+                            @foreach ($customers as $customer)
+                            <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary btn-sm form-control">Filter</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    <!-- Data Table -->
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
@@ -52,38 +86,40 @@
                 @endforeach
             </tbody>
         </table>
-    </div>
-
-    <!-- Modal -->
-    <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="detailModalLabel">Detail Barang yang Dibeli</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Product Name</th>
-                                <th>Product Code</th>
-                                <th>Category</th>
-                                <th>Quantity</th>
-                                <th>Price</th>
-                            </tr>
-                        </thead>
-                        <tbody id="order-details">
-                            <!-- Data akan dimasukkan melalui JavaScript -->
-                        </tbody>
-                    </table>
+        <!-- Modal -->
+        <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="detailModalLabel">Detail Barang yang Dibeli</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Product Code</th>
+                                    <th>Category</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-details">
+                                <!-- Data akan dimasukkan melalui JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+</div>
+</main>
 
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script>
         $(document).ready(function() {
             $('#detailModal').on('show.bs.modal', function(event) {
@@ -112,4 +148,3 @@
             });
         });
     </script>
-</body>
