@@ -20,13 +20,13 @@ class UserTest extends Seeder
                 'name' => 'Sergio Moses Riyanto',
                 'email' => 'sergiomoses.r@gmail.com',
                 'password' => '123456',
-                'level' => 'Admin'
+                'role' => 'cashier'
             ],
             [
                 'name' => 'Stepanus Berkat Sinaga',
                 'email' => 'stepan@gmail.com',
                 'password' => '123456',
-                'level' => 'Admin'
+                'role' => 'admin'
             ],
         ];
 

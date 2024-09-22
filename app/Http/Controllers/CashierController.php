@@ -146,7 +146,6 @@ class CashierController extends Controller
         return response()->json([
             'message' => 'Checkout berhasil',
             'invoice' => $invoice,
-            'pdf_url' => route('download.invoice', $Checkout->id) // URL download (opsional)
         ], 200);
     }
 

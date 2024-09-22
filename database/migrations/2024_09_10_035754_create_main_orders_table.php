@@ -18,11 +18,11 @@ class CreateMainOrdersTable extends Migration
             $table->string('cashier');
             $table->string('customer');
             $table->bigInteger('grandtotal');
-            $table->enum('payment', ['cash','transfer']);
-            $table->bigInteger('cash');
-            $table->bigInteger('changes');
+            $table->enum('payment', ['cash','transfer'])->nullable();
+            $table->bigInteger('cash')->nullable();
+            $table->bigInteger('changes')->nullable();
             $table->string('transfer_image')->nullable();
-            $table->enum('status', ['print', 'pending', 'checkout']);
+            $table->enum('status', ['debt', 'pending', 'checkout']);
             $table->timestamps();
         });
     }

@@ -13,7 +13,8 @@
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "maatwebsite/excel": "^1.1",
-        "mike42/escpos-php": "2.1"
+        "mike42/escpos-php": "2.1",
+        "phpoffice/phpspreadsheet": "^1.12"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
