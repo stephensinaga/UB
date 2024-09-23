@@ -15,7 +15,7 @@
         href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
         rel="stylesheet">
 
-      
+
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
         integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
@@ -44,9 +44,16 @@
     @include('layouts.sidebar')
     <!-- End Sidebar-->
 
-    {{-- setiap konten wajib ada
-    <main id="main" class="main"> --}}
-        @yield('contents')
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8">
+                <main id="main" class="main">
+                    @yield('contents')
+                </main>
+            </div>
+
+        </div>
+    </div>
 
         <!-- ======= Footer ======= -->
         @include('layouts.footer')

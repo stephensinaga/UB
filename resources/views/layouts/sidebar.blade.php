@@ -47,4 +47,28 @@
     </ul>
 
 </aside>
- 
+<style>
+    .sidebar {
+        width: 60px;
+        transition: width 0.3s;
+    }
+    .sidebar-nav .nav-link {
+        justify-content: center;
+        padding: 10px;
+        text-align: center;
+    }
+    .sidebar-nav .nav-link span {
+        display: none;
+    }
+    .sidebar-nav .nav-link i {
+        font-size: 26px;
+    }
+
+    .sidebar:hover {
+        width: 200px;
+    }
+
+    .sidebar:hover .nav-link span {
+        display: inline;
+    }
+</style>
