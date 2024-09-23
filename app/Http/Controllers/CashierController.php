@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
 
@@ -170,11 +171,9 @@ class CashierController extends Controller
 
     private function printToThermalPrinter($mainOrder)
     {
-        $connector = new WindowsPrintConnector("smb://HW-05/aoa");
+        $connector = new WindowsPrintConnector("POS-801");
 
         try {
-            // Ganti dengan konektor printer Anda
-            $connector = new WindowsPrintConnector("aoa");
             $printer = new Printer($connector);
 
             // Mencetak Header
@@ -184,34 +183,35 @@ class CashierController extends Controller
             $printer->text("-----------------------------\n");
 
             // Mencetak Detail Order
-            $printer->text("Invoice No: {$mainOrder->id}\n");
-            $printer->text("Date: {$mainOrder->created_at->format('d/m/Y')}\n");
-            $printer->text("Cashier: {$mainOrder->cashier}\n");
-            $printer->text("Customer: {$mainOrder->customer}\n");
+            $printer->text("Invoice No    : {$mainOrder->id}\n");
+            $printer->text("Date          : {$mainOrder->created_at->format('d/m/Y')}\n");
+            $printer->text("Cashier       : {$mainOrder->cashier}\n");
+            $printer->text("Customer      : {$mainOrder->customer}\n");
             $printer->text("Payment Method: " . ucfirst($mainOrder->payment) . "\n");
 
             if ($mainOrder->payment === 'cash') {
-                $printer->text("Paid: Rp" . number_format($mainOrder->cash, 0, ',', '.') . "\n");
+                $printer->text("Paid          : Rp" . number_format($mainOrder->cash, 0, ',', '.') . "\n");
             } else {
                 $printer->text("Transfer Proof: See Attached\n");
             }
 
-            // Mencetak Detail Produk
-            $printer->text("-----------------------------\n");
-            $printer->text("Product\t\tQty\tPrice\tTotal\n");
+            // Mencetak Detail Produk tanpa border
             $printer->text("-----------------------------\n");
 
             foreach ($mainOrder->orders as $order) {
-                $printer->text("{$order->product_name}\t{$order->qty}\tRp" . number_format($order->product_price, 0, ',', '.') . "\tRp" . number_format($order->qty * $order->product_price, 0, ',', '.') . "\n");
+                $productName = str_pad($order->product_name, 22); // Padding untuk nama produk
+                $productPrice = "Rp" . number_format($order->product_price, 0, ',', '.');
+                $quantity = $order->qty;
+                $printer->text("{$productName}    : {$productPrice} * {$quantity}\n");
             }
 
             // Mencetak Total
             $printer->text("-----------------------------\n");
-            $printer->text("Total: Rp" . number_format($mainOrder->grandtotal, 0, ',', '.') . "\n");
+            $printer->text("Total         : Rp" . number_format($mainOrder->grandtotal, 0, ',', '.') . "\n");
 
             if ($mainOrder->payment === 'cash') {
-                $printer->text("Cash Paid: Rp" . number_format($mainOrder->cash, 0, ',', '.') . "\n");
-                $printer->text("Change: Rp" . number_format($mainOrder->changes, 0, ',', '.') . "\n");
+                $printer->text("Cash Paid     : Rp" . number_format($mainOrder->cash, 0, ',', '.') . "\n");
+                $printer->text("Change        : Rp" . number_format($mainOrder->changes, 0, ',', '.') . "\n");
             }
 
             $printer->text("-----------------------------\n");
@@ -229,10 +229,12 @@ class CashierController extends Controller
         }
     }
 
+
+
     public function testPrinterConnection()
     {
         // Ganti dengan nama printer Anda
-        $printerName = "MINIPOS"; // Sesuaikan dengan nama printer Anda
+        $printerName = "smb://rpl-07/POS-801"; // Sesuaikan dengan nama printer Anda
         $connector = new WindowsPrintConnector($printerName);
 
         try {

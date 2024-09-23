@@ -30,7 +30,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('create/product', [AdminController::class, 'CreateProduct'])->name('CreateProductProcess'); //Function Penambahan Product Baru
         Route::delete('delete/product/{id}', [AdminController::class, 'DeleteProduct'])->name('DeleteProduct'); //Function Delete Product
         Route::get('edit/product/view/{id}', [AdminController::class, 'EditProductView'])->name('EditProductView'); //Tampilan untuk Edit Product
-        Route::put('edit/product/{id}', [AdminController::class, 'EditProduct'])->name('EditProductProcess'); //Function Update Product yg di edit 
+        Route::put('edit/product/{id}', [AdminController::class, 'EditProduct'])->name('EditProductProcess'); //Function Update Product yg di edit
 
         // Bagian Laporan Pembelian Export PDF
         Route::get('export/laporan/pdf', [AdminController::class, 'ExportLaporanPDF'])->name('ExportLaporanPDF'); //Function Download Laporan PDF
@@ -47,12 +47,12 @@ Route::prefix('cashier')->group(function () {
     Route::post('order/selected/product/{id}', [CashierController::class, 'Order'])->name('OrderProduct'); //Function Order Product
     Route::post('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct'); //Function Checkout Product
     Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItem'])->name('MinOrderItem'); //Function Mengurangi Qty
-    Route::get('print/invoice/{id}', [CashierController::class, 'testPrinterConnection'])->name('PrintInvoice'); //Function Test Print Invoice
+    Route::get('print/invoice/{id}', [CashierController::class, 'printInvoice'])->name('PrintInvoice'); //Function Test Print Invoice
 
     Route::get('history/penjualan/', [AdminController::class, 'HistoryPenjualanCashier'])->name('HistoryPenjualanCashier'); //View Laporan Penjualan per User
     Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporan'])->name('DetailLaporan'); //Endpoint Detail Pembelian Tiap Customer
     Route::get('export/laporan/penjualan/harian', [ExportController::class, 'ExportLaporanPenjualanHarian'])->name('ExportLaporanPenjualanHarian'); //Export Laporan Penjualan Harian
-
+Route::get('test/print', [CashierController::class, 'testPrinterConnection'])->name('testss');
 
 
     // Route::put('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');

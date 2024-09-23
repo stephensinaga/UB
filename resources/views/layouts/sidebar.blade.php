@@ -11,37 +11,36 @@
 
         <li class="nav-item">
             <a class="nav-link " href="{{ route('CreateProductView') }}">
-                <i class="bi bi-box-fill"></i>
-                <span>Barang</span>
+                <i class="bi bi-box-seam"></i>
+                <span>Product</span>
             </a>
         </li>
 
         <li class="nav-item">
             <a class="nav-link " href="{{ route('CashierView') }}">
-                <i class="bi bi-box-fill"></i>
-                <span>Order Product</span>
+                <i class="bi bi-minecart"></i>
+                <span>Cashier</span>
             </a>
         </li>
 
-
         <li class="nav-item">
             <a class="nav-link " href="{{ route('HistoryPenjualanCashier') }}">
-                <i class="fa-solid fa-file-pen"></i>
-                <span>History Penjualan</span>
+                <i class="bi bi-calendar-check"></i>
+                <span>Sales History</span>
             </a>
         </li>
 
         <li class="nav-item">
             <a class="nav-link" href="{{ route('LaporanPenjualan') }}">
-                <i class="bi bi-box-fill"></i>
-                <span>Laporan Penjualan</span>
+                <i class="bi bi-journal-text"></i>
+                <span>Sales Report</span>
             </a>
         </li>
 
         <li class="nav-item">
             <a class="nav-link" href="">
-                <i class="bi bi-box-fill"></i>
-                <span>Hutang - Piutang</span>
+                <i class="bi bi-cash-coin"></i>
+                <span>Debts - Receivbles</span>
             </a>
         </li>
     </ul>

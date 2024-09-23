@@ -32,6 +32,57 @@
 
     <!-- Template Main CSS File -->
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 70px;
+            margin: 0;
+        }
+
+        .container-fluid {
+            display: flex;
+            flex-wrap: nowrap;
+        }
+
+        .sidebar {
+            width: 220px;
+            /* Lebar sidebar dikurangi */
+            height: 100vh;
+            background-color: #f8f9fa;
+            position: fixed;
+            top: 70px;
+            /* Sesuaikan dengan tinggi navbar */
+            left: 0;
+            overflow-y: auto;
+            padding: 20px;
+            z-index: 1;
+        }
+
+        .content-wrapper {
+            margin-left: 220px;
+            /* Sesuaikan dengan lebar sidebar */
+            padding: 20px;
+            width: calc(100% - 220px);
+            /* Hitung ulang lebar konten setelah sidebar */
+            background-color: #fff;
+            min-height: calc(100vh - 70px);
+            /* Pastikan konten menutupi seluruh viewport */
+        }
+
+        /* Responsive untuk layar kecil */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+                /* Sidebar lebih kecil pada layar kecil */
+            }
+
+            .content-wrapper {
+                margin-left: 80px;
+                /* Margin konten disesuaikan */
+                width: calc(100% - 80px);
+                /* Lebar konten disesuaikan */
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -40,39 +91,37 @@
     @include('layouts.navbar')
     <!-- End Header -->
 
-    <!-- ======= Sidebar ======= -->
-    @include('layouts.sidebar')
-    <!-- End Sidebar-->
-
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-8">
-                <main id="main" class="main">
-                    @yield('contents')
-                </main>
+        <!-- ======= Sidebar ======= -->
+        @include('layouts.sidebar')
+        <!-- End Sidebar -->
+        <div class="container">
+            <div class="custom-wrapper" style="padding: 20px; font-size: 1.2em;">
+                @yield('contents')
             </div>
-
         </div>
     </div>
 
-        <!-- ======= Footer ======= -->
-        @include('layouts.footer')
-        <!-- End Footer -->
+    <!-- ======= Footer ======= -->
+    @include('layouts.footer')
+    <!-- End Footer -->
 
-        <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
-                class="bi bi-arrow-up-short"></i></a>
-        <!-- Vendor JS Files -->
-        <script src="{{ asset('assets/vendor/apexcharts/apexcharts.min.js') }}"></script>
-        <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-        <script src="{{ asset('assets/vendor/chart.js/chart.umd.js') }}"></script>
-        <script src="{{ asset('assets/vendor/echarts/echarts.min.js') }}"></script>
-        <script src="{{ asset('assets/vendor/quill/quill.js') }}"></script>
-        <script src="{{ asset('assets/vendor/simple-datatables/simple-datatables.js') }}"></script>
-        <script src="{{ asset('assets/vendor/tinymce/tinymce.min.js') }}"></script>
-        <script src="{{ asset('assets/vendor/php-email-form/validate.js') }}"></script>
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center">
+        <i class="bi bi-arrow-up-short"></i>
+    </a>
 
-        <!-- Template Main JS File -->
-        <script src="{{ asset('assets/js/main.js') }}"></script>
+    <!-- Vendor JS Files -->
+    <script src="{{ asset('assets/vendor/apexcharts/apexcharts.min.js') }}"></script>
+    <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('assets/vendor/chart.js/chart.umd.js') }}"></script>
+    <script src="{{ asset('assets/vendor/echarts/echarts.min.js') }}"></script>
+    <script src="{{ asset('assets/vendor/quill/quill.js') }}"></script>
+    <script src="{{ asset('assets/vendor/simple-datatables/simple-datatables.js') }}"></script>
+    <script src="{{ asset('assets/vendor/tinymce/tinymce.min.js') }}"></script>
+    <script src="{{ asset('assets/vendor/php-email-form/validate.js') }}"></script>
+
+    <!-- Template Main JS File -->
+    <script src="{{ asset('assets/js/main.js') }}"></script>
 
 </body>
 

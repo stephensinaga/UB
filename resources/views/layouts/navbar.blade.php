@@ -5,7 +5,7 @@
         <img src="{{ asset('assets/img/dapur_negeri.png') }}" alt="">
         <span class="d-none d-lg-block">Dapur Negeriku</span>
     </a>
-    <i class="bi bi-list toggle-sidebar-btn"></i>
+    {{-- <i class="bi bi-list toggle-sidebar-btn"></i> --}}
 </div><!-- End Logo -->
 
     <nav class="header-nav ms-auto">
@@ -35,13 +35,13 @@
             <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
                 <i class="bi bi-chat-left-text"></i>
                 <span class="badge bg-success badge-number">3</span>
-            </a><!-- End Messages Icon -->
+            </a>
 
         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages">
 
-        </ul><!-- End Messages Dropdown Items -->
+        </ul>
 
-        </li><!-- End Messages Nav -->
+        </li>
 
         <li class="nav-item dropdown pe-3">
 
@@ -51,7 +51,7 @@
                 <br>
                 <small>{{ auth()->user()->level }}</small>
             </span>
-        </a><!-- End Profile Iamge Icon -->
+        </a>
 
         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
@@ -94,16 +94,16 @@
             </li>
 
             <li>
-            <a class="dropdown-item d-flex align-items-center" href="#">
+            <a class="dropdown-item d-flex align-items-center" href="{{ route('logout') }}">
                 <i class="bi bi-box-arrow-right"></i>
                 <span>Sign Out</span>
             </a>
             </li>
 
-        </ul><!-- End Profile Dropdown Items -->
-        </li><!-- End Profile Nav -->
+        </ul>
+        </li>
 
     </ul>
-    </nav><!-- End Icons Navigation -->
+    </nav>
 
 </header>

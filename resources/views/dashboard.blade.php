@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('contents')
-<main id="main" class="main">
     <div class="pagetitle">
         <h1>Dashboard</h1>
         <nav>
@@ -64,6 +63,4 @@
             </div>
 
     </section>
-
-</main><!-- End #main -->
 @endsection

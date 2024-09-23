@@ -1,8 +1,6 @@
 @extends('layouts.app')
 
 @section('contents')
-<main id="main" class="main">
-
     <body>
         <div class="card">
             <div class="card-header">
@@ -111,4 +109,3 @@
             });
         });
     </script>
-</main>
