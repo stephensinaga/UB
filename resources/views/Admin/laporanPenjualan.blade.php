@@ -11,13 +11,11 @@
                     <!-- Payment Method Filter -->
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label for="payment_method">Metode Pembayaran</label>
+                            <label for="payment_method">Payment Method</label>
                             <select class="form-control form-control-sm" id="payment_method" name="payment_method">
-                                <option value="">Filter Metode Pembayaran</option>
-                                <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>Cash
-                                </option>
-                                <option value="transfer" {{ request('payment_method') == 'transfer' ? 'selected' : '' }}>
-                                    Transfer</option>
+                                <option value="">All</option>
+                                <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
+                                <option value="transfer" {{ request('payment_method') == 'transfer' ? 'selected' : '' }}>Transfer</option>
                             </select>
                         </div>
                     </div>
@@ -27,19 +25,19 @@
                         <div class="form-group">
                             <label for="cashier">Cashier</label>
                             <select class="form-control form-control-sm" id="cashier" name="cashier">
-                                <option value="">Filter Cashier</option>
+                                <option value="">All</option>
                                 @foreach ($cashiers as $id => $name)
-                                    <option value="{{ $name }}" {{ request('cashier') == $id ? 'selected' : '' }}>
-                                        {{ $name }}</option>
+                                    <option value="{{ $id }}" {{ request('cashier') == $id ? 'selected' : '' }}>
+                                        {{ $name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
-
                     <!-- Date Filter -->
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label for="date">Tanggal</label>
+                            <label for="date">Date</label>
                             <input type="date" class="form-control" id="date" name="date"
                                 value="{{ request('date') }}">
                         </div>
@@ -48,7 +46,7 @@
                     <!-- Date Range Filter -->
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label for="start_date">Rentang Tanggal</label>
+                            <label for="start_date">Date Range</label>
                             <div class="input-group">
                                 <input type="date" class="form-control" id="start_date" name="start_date"
                                     value="{{ request('start_date') }}">
@@ -81,7 +79,7 @@
                         <div class="form-group">
                             <label>&nbsp;</label>
                             <a href="{{ route('ExportLaporanPenjualan', request()->all()) }}"
-                                class="btn btn-primary btn-sm form-control">Download Laporan</a>
+                                class="btn btn-primary btn-sm form-control">Download Report</a>
                         </div>
                     </div>
                 </div>
@@ -139,7 +137,7 @@
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabel">Detail Barang yang Dibeli</h5>
+                            <h5 class="modal-title" id="detailModalLabel">Detail Product</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>

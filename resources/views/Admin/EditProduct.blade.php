@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('contents')
-    <body>
-        <div class="card">
+<div class="row">
+    <div class="col-md-8 offset-md-2">
             <div class="card-header">
                 <h5>Edit Product</h5>
             </div>
@@ -53,10 +53,8 @@
                     <button type="submit" class="btn btn-primary">Save changes</button>
                 </form>
             </div>
-        </div>
-
-    </body>
-
+    </div>
+</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
         integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -97,13 +95,24 @@
                     contentType: false,
                     processData: false,
                     success: function(result) {
-                        alert('Data berhasil diubah');
-                        window.location.href =
-                            'http://127.0.0.1:8000/admin/create/product/view/';
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Data berhasil diubah',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        }).then(() => {
+                            // Redirect after success and after the alert closes
+                            window.location.href = '{{ route('CreateProductView') }}';
+                        });
                     },
                     error: function(xhr, status, error) {
-                        console.log(xhr.responseText);
-                        alert('Gagal mengubah data');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal mengubah data',
+                            text: xhr.responseText,
+                            showConfirmButton: true
+                        });
                     }
                 });
             });

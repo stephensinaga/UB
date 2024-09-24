@@ -11,9 +11,9 @@
                     <!-- Payment Method Filter -->
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label for="payment_method">Metode Pembayaran</label>
+                            <label for="payment_method">Payment Method</label>
                             <select class="form-control form-control-sm" id="payment_method" name="payment_method">
-                                <option value="">Semua</option>
+                                <option value="">All</option>
                                 <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>Cash
                                 </option>
                                 <option value="transfer" {{ request('payment_method') == 'transfer' ? 'selected' : '' }}>
@@ -27,7 +27,7 @@
                         <div class="form-group">
                             <label for="customer">Customer</label>
                             <select class="form-control form-control-sm" id="customer" name="customer">
-                                <option value="">Semua Customer</option>
+                                <option value="">All</option>
                                 @foreach ($customers as $customer)
                                     <option value="{{ $customer }}"
                                         {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}
@@ -50,7 +50,7 @@
                         <div class="form-group">
                             <label>&nbsp;</label>
                             <a href="{{ route('ExportLaporanPenjualanHarian') }}"
-                                class="btn btn-primary btn-sm form-control">Download Laporan</a>
+                                class="btn btn-primary btn-sm form-control">Download Report</a>
                         </div>
                     </div>
                 </div>
@@ -106,7 +106,7 @@
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabel">Detail Barang yang Dibeli</h5>
+                            <h5 class="modal-title" id="detailModalLabel">Detail Product</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>

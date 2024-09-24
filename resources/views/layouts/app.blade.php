@@ -96,9 +96,7 @@
         @include('layouts.sidebar')
         <!-- End Sidebar -->
         <div class="container">
-            <div class="custom-wrapper" style="padding: 20px; font-size: 1.2em;">
-                @yield('contents')
-            </div>
+             @yield('contents')
         </div>
     </div>
 
@@ -122,6 +120,7 @@
 
     <!-- Template Main JS File -->
     <script src="{{ asset('assets/js/main.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>
 

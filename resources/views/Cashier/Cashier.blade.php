@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('contents')
-<div class="container card-body">
-    <section class="section dashboard container-fluid">
+<div class="container card-body ">
+    <section class="container-fluid">
         <div class="row">
             <!-- Product section -->
             <div class="col-lg-7">
@@ -11,11 +11,11 @@
                     <div class="row">
                         <div class="col-md-4">
                             <input type="text" name="search" class="form-control"
-                                placeholder="Cari berdasarkan Nama Produk atau Kode" value="{{ request('search') }}">
+                                placeholder="Product / Code" value="{{ request('search') }}">
                         </div>
                         <div class="col-md-4">
                             <select name="category" class="form-control">
-                                <option value="">Semua Kategori</option>
+                                <option value="">All Category</option>
                                 @foreach ($categories as $category)
                                 <option value="{{ $category->category }}">{{ $category->category }}</option>
                                 @endforeach
@@ -50,8 +50,7 @@
                                         <p class="text-muted small product-code">{{ $item->product_code }}</p>
                                         <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
                                             @csrf
-                                            <button type="submit" class="btn btn-primary mt-2"><i
-                                                    class="bi bi-plus"></i> Order</button>
+                                            <button type="submit" class="btn btn-primary mt-2"></i> Order</button>
                                         </form>
                                     </div>
                                 </div>
@@ -118,36 +117,36 @@
                                     <div class="modal-body">
                                         <div class="invoice-header">
                                             <h6>No. Invoice: <span id="invoiceId"></span></h6>
-                                            <p>Tanggal: <span id="invoiceDate"></span></p>
+                                            <p>Date: <span id="invoiceDate"></span></p>
                                         </div>
                                         <div class="invoice-details mt-3">
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th>Kasir:</th>
+                                                    <th>Cashier:</th>
                                                     <td id="cashierName"></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Pelanggan:</th>
+                                                    <th>Customer:</th>
                                                     <td id="customerNames"></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Total Harga:</th>
+                                                    <th>Grand Total:</th>
                                                     <td id="grandTotal"></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Metode Pembayaran:</th>
+                                                    <th>Payment Method:</th>
                                                     <td id="payments"></td>
                                                 </tr>
                                                 <tr id="cashRow" style="display: none;">
-                                                    <th>Uang Dibayar:</th>
+                                                    <th>Paid:</th>
                                                     <td id="cashs"></td>
                                                 </tr>
                                                 <tr id="changesRow" style="display: none;">
-                                                    <th>Kembalian:</th>
+                                                    <th>Change:</th>
                                                     <td id="changes"></td>
                                                 </tr>
                                                 <tr id="transferProofRow" style="display: none;">
-                                                    <th>Bukti Transfer:</th>
+                                                    <th>Proof of Transfer:</th>
                                                     <td id="transferProofs"></td>
                                                 </tr>
                                             </table>
@@ -164,35 +163,35 @@
                         <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
                             @csrf
                             <div class="form-group">
-                                <label for="customerSelect">Pelanggan</label>
+                                <label for="customerSelect">Customer</label>
                                 <select class="form-control" id="customerSelect" name="customer_select">
-                                    <option value="">Pilih Pelanggan</option>
+                                    <option value="">Choose Customer</option>
                                     @foreach ($customers as $customer)
                                     <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
                                     @endforeach
-                                    <option value="other">Lainnya (Isi Manual)</option>
+                                    <option value="other">Other (fill manual)</option>
                                 </select>
                                 <div id="manualEntry" class="manual-entry mt-2" style="display: none;">
-                                    <label for="customerName">Masukan nama Pelanggan</label>
+                                    <label for="customerName">Enter Customer Name</label>
                                     <input type="text" class="form-control" id="customerName" name="customer">
                                 </div>
 
                                 <br>
-                                <label for="paymentType">Tipe Pembayaran</label>
+                                <label for="paymentType">Payment Type</label>
                                 <select class="form-control" id="paymentType" name="payment_type">
-                                    <option value="">Pilih Tipe Pembayaran</option>
+                                    <option value="">Choose Payment Type</option>
                                     <option value="cash">Cash</option>
                                     <option value="transfer">Transfer</option>
                                 </select>
 
                                 <div class="cash-section mt-3">
-                                    <label for="cashGiven">Uang Dibayar</label>
+                                    <label for="cashGiven">Money Paid</label>
                                     <input type="number" class="form-control" id="cashGiven" name="cash"
                                         placeholder="Masukkan jumlah uang">
                                 </div>
 
                                 <div class="transfer-section mt-3" style="display: none;">
-                                    <label for="transferProof">Unggah Bukti Transfer</label>
+                                    <label for="transferProof">Upload Proof of Transfer</label>
                                     <input type="file" class="form-control-file" id="transferProof"
                                         name="transfer_proof">
                                 </div>
