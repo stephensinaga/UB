@@ -21,39 +21,36 @@ Route::controller(AuthController::class)->group(function () {
     Route::get('logout', 'logout')->middleware('auth')->name('logout');
 });
 
-
-
 Route::middleware(['auth'])->group(function () {
-    Route::prefix('admin')->group(function () {
-        Route::get('dashboard', [AdminController::class, 'Dashboard'])->name('Dashboard'); //Dashboard Admin - Cashier
-        Route::get('create/product/view', [AdminController::class, 'CreateProductView'])->name('CreateProductView'); //Tampilan Penambahan product baru
-        Route::post('create/product', [AdminController::class, 'CreateProduct'])->name('CreateProductProcess'); //Function Penambahan Product Baru
-        Route::delete('delete/product/{id}', [AdminController::class, 'DeleteProduct'])->name('DeleteProduct'); //Function Delete Product
-        Route::get('edit/product/view/{id}', [AdminController::class, 'EditProductView'])->name('EditProductView'); //Tampilan untuk Edit Product
-        Route::put('edit/product/{id}', [AdminController::class, 'EditProduct'])->name('EditProductProcess'); //Function Update Product yg di edit
 
-        // Bagian Laporan Pembelian Export PDF
-        Route::get('export/laporan/pdf', [AdminController::class, 'ExportLaporanPDF'])->name('ExportLaporanPDF'); //Function Download Laporan PDF
-        Route::get('laporan/view', [AdminController::class, 'SalesReport'])->name   ('SalesReportView'); //View Export Laporan PDF
+    Route::get('dashboard', [AdminController::class, 'Dashboard'])->name('Dashboard');
 
-        Route::get('laporan/penjualan/all', [AdminController::class, 'laporanPenjualan'])->name('LaporanPenjualan'); //Tampilan untuk Laporan Penjualan(Admin)
+    // Rute Admin dengan Middleware 'role:admin'
+    Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+        Route::get('create/product/view', [AdminController::class, 'CreateProductView'])->name('CreateProductView');
+        Route::post('create/product', [AdminController::class, 'CreateProduct'])->name('CreateProductProcess');
+        Route::delete('delete/product/{id}', [AdminController::class, 'DeleteProduct'])->name('DeleteProduct');
+        Route::get('edit/product/view/{id}', [AdminController::class, 'EditProductView'])->name('EditProductView');
+        Route::put('edit/product/{id}', [AdminController::class, 'EditProduct'])->name('EditProductProcess');
 
-        Route::get('export/laporan/penjualan/filtered', [ExportController::class, 'ExportLaporanPenjualan'])->name('ExportLaporanPenjualan'); //Export Laporan Penjualan Filtered
+        // Laporan & Export
+        Route::get('export/laporan/pdf', [AdminController::class, 'ExportLaporanPDF'])->name('ExportLaporanPDF');
+        Route::get('laporan/view', [AdminController::class, 'SalesReport'])->name('SalesReportView');
+        Route::get('laporan/penjualan/all', [AdminController::class, 'laporanPenjualan'])->name('LaporanPenjualan');
+        Route::get('export/laporan/penjualan/filtered', [ExportController::class, 'ExportLaporanPenjualan'])->name('ExportLaporanPenjualan');
     });
-});
 
-Route::prefix('cashier')->group(function () {
-    Route::get('view', [CashierController::class, 'CashierView'])->name('CashierView'); //Tampilan Order Product
-    Route::post('order/selected/product/{id}', [CashierController::class, 'Order'])->name('OrderProduct'); //Function Order Product
-    Route::post('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct'); //Function Checkout Product
-    Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItem'])->name('MinOrderItem'); //Function Mengurangi Qty
-    Route::get('print/invoice/{id}', [CashierController::class, 'printInvoice'])->name('PrintInvoice'); //Function Test Print Invoice
+    // Rute Cashier dengan Middleware 'role:cashier'
+    Route::middleware(['auth', 'role:cashier'])->prefix('cashier')->group(function () {
+        Route::get('view', [CashierController::class, 'CashierView'])->name('CashierView');
+        Route::post('order/selected/product/{id}', [CashierController::class, 'Order'])->name('OrderProduct');
+        Route::post('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');
+        Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItem'])->name('MinOrderItem');
+        Route::get('print/invoice/{id}', [CashierController::class, 'printInvoice'])->name('PrintInvoice');
 
-    Route::get('history/penjualan/', [AdminController::class, 'HistoryPenjualanCashier'])->name('HistoryPenjualanCashier'); //View Laporan Penjualan per User
-    Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporan'])->name('DetailLaporan'); //Endpoint Detail Pembelian Tiap Customer
-    Route::get('export/laporan/penjualan/harian', [ExportController::class, 'ExportLaporanPenjualanHarian'])->name('ExportLaporanPenjualanHarian'); //Export Laporan Penjualan Harian
-Route::get('test/print', [CashierController::class, 'testPrinterConnection'])->name('testss');
-
-
-    // Route::put('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');
+        // Laporan Penjualan
+        Route::get('history/penjualan/', [AdminController::class, 'HistoryPenjualanCashier'])->name('HistoryPenjualanCashier');
+        Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporan'])->name('DetailLaporan');
+        Route::get('export/laporan/penjualan/harian', [ExportController::class, 'ExportLaporanPenjualanHarian'])->name('ExportLaporanPenjualanHarian');
+    });
 });

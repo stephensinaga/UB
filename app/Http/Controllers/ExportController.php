@@ -72,9 +72,6 @@ class ExportController extends Controller
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
 
-        // Tambahkan autofilter ke header kolom
-        $lastColumn = $sheet->getHighestDataColumn();
-
         // Simpan Excel dengan nama file yang mengandung tanggal hari ini
         $fileName = 'Laporan_Penjualan_Harian_' . Carbon::now()->format('d_m_Y') . '.xlsx';
         $filePath = storage_path($fileName);
@@ -160,6 +157,11 @@ class ExportController extends Controller
         // Ambil data penjualan sesuai filter
         $orders = $mainOrdersQuery->get();
 
+        // Inisialisasi variabel untuk menghitung total
+        $totalGrandTotal = 0;
+        $totalKeuntungan = 0;
+        $itemPenjualan = [];
+
         // Isi data ke dalam Excel
         $row = 3; // Mulai dari baris ketiga setelah header
         $no = 1;  // Nomor urut
@@ -174,6 +176,13 @@ class ExportController extends Controller
             $sheet->setCellValue('H' . $row, 'Rp ' . number_format($order->changes, 0, ',', '.'));
             $sheet->setCellValue('I' . $row, ucfirst($order->status));
             $sheet->setCellValue('J' . $row, $order->created_at->format('d M Y'));
+
+            // Tambahkan total grandtotal
+            $totalGrandTotal += $order->grandtotal;
+
+            // // Tambahkan perhitungan keuntungan (asumsi ada kolom profit di MainOrder)
+            // $totalKeuntungan += $order->profit;
+
 
             // Styling untuk setiap baris data
             $sheet->getStyle('A' . $row . ':J' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
@@ -190,6 +199,24 @@ class ExportController extends Controller
 
         $sheet->getColumnDimension('L')->setAutoSize(true);
         $sheet->getColumnDimension('M')->setAutoSize(true);
+
+        // // Tambahkan keterangan total keuntungan dan total penjualan setelah data
+        // $sheet->setCellValue('A' . $row, 'Total Keuntungan');
+        // $sheet->mergeCells('A' . $row . ':D' . $row);
+        // $sheet->setCellValue('E' . $row, 'Rp ' . number_format($totalKeuntungan, 0, ',', '.'));
+
+        // Total Grand Total langsung di L3 dan M3
+        $sheet->setCellValue('L3', 'Total Penjualan: ');
+        $sheet->mergeCells('L3:M3'); // Gabungkan sel untuk label
+        $sheet->setCellValue('O3', 'Rp ' . number_format($totalGrandTotal, 0, ',', '.'));
+
+
+        $row += 2;
+        $sheet->setCellValue('A' . $row, 'Detail Penjualan Setiap Item');
+        $sheet->mergeCells('A' . $row . ':E' . $row);
+        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+
+        $row++;
 
         // Simpan Excel dengan nama file yang mengandung tanggal hari ini
         $fileName = 'Laporan_Penjualans_' . Carbon::now()->format('d_m_Y') . '.xlsx';
