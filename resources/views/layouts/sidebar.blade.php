@@ -1,3 +1,7 @@
+@php
+$user = Auth::user();
+@endphp
+
 <aside id="sidebar" class="sidebar">
 
     <ul class="sidebar-nav" id="sidebar-nav">
@@ -8,14 +12,16 @@
                 <span>Dashboard</span>
             </a>
         </li>
-
+        @if ($user->role === 'admin')
         <li class="nav-item">
             <a class="nav-link " href="{{ route('CreateProductView') }}">
                 <i class="bi bi-box-seam"></i>
                 <span>Product</span>
             </a>
         </li>
+        @endif
 
+        @if ($user->role === 'cashier')
         <li class="nav-item">
             <a class="nav-link " href="{{ route('CashierView') }}">
                 <i class="bi bi-minecart"></i>
@@ -29,13 +35,16 @@
                 <span>Sales History</span>
             </a>
         </li>
+        @endif
 
+        @if ($user->role === 'admin')
         <li class="nav-item">
             <a class="nav-link" href="{{ route('LaporanPenjualan') }}">
                 <i class="bi bi-journal-text"></i>
                 <span>Sales Report</span>
             </a>
         </li>
+        @endif
 
         <li class="nav-item">
             <a class="nav-link" href="">
@@ -51,14 +60,17 @@
         width: 60px;
         transition: width 0.3s;
     }
+
     .sidebar-nav .nav-link {
         justify-content: center;
         padding: 10px;
         text-align: center;
     }
+
     .sidebar-nav .nav-link span {
         display: none;
     }
+
     .sidebar-nav .nav-link i {
         font-size: 26px;
     }

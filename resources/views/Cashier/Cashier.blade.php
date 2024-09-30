@@ -5,13 +5,13 @@
     <section class="container-fluid">
         <div class="row">
             <!-- Product section -->
-            <div class="col-lg-7">
+            <div class="col-lg-7 col-md-12 mb-2">
                 <!-- Adjust to col-lg-7 -->
                 <form method="GET" action="{{ route('CashierView') }}" class="mb-4">
                     <div class="row">
                         <div class="col-md-4">
-                            <input type="text" name="search" class="form-control"
-                                placeholder="Product / Code" value="{{ request('search') }}">
+                            <input type="text" name="search" class="form-control" placeholder="Product / Code"
+                                value="{{ request('search') }}">
                         </div>
                         <div class="col-md-4">
                             <select name="category" class="form-control">
@@ -63,150 +63,144 @@
 
             <!-- Checkout section -->
             <div class="col-lg-5">
-                <!-- Reduced from col-lg-5 to make room -->
-                <div class="container-md mt-5">
-                    <div class="card shadow-sm p-2">
-                        <h2 class="mb-4">Checkout List</h2>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover table-striped">
-                                <thead class="thead-dark">
-                                    <tr>
-                                        <th>Product Name</th>
-                                        <th>Product Price</th>
-                                        <th>Product Qty</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($order as $item)
-                                    <tr>
-                                        <td>{{ $item->product_name }}</td>
-                                        <td>{{ number_format($item->product_price, 2) }}</td>
-                                        <td>
-                                            {{ $item->qty }}
-                                            <form method="post" class="MinOrderItem d-inline-block"
-                                                data-id="{{ $item->id }}">
-                                                @csrf
-                                                @method('PUT')
-                                                <button type="submit" class="btn btn-sm btn-danger">-</button>
-                                            </form>
-                                        </td>
-                                        <td>{{ number_format($item->qty * $item->product_price, 2) }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot>
-                                    <tr class="font-weight-bold">
-                                        <td colspan="3" class="text-right">Total Price:</td>
-                                        <td>{{ number_format($order->sum(fn($item) => $item->qty *
-                                            $item->product_price), 2) }}</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                        <div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog"
-                            aria-labelledby="invoiceModalLabel" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="invoiceModalLabel">Invoice</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="invoice-header">
-                                            <h6>No. Invoice: <span id="invoiceId"></span></h6>
-                                            <p>Date: <span id="invoiceDate"></span></p>
-                                        </div>
-                                        <div class="invoice-details mt-3">
-                                            <table class="table table-bordered">
-                                                <tr>
-                                                    <th>Cashier:</th>
-                                                    <td id="cashierName"></td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Customer:</th>
-                                                    <td id="customerNames"></td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Grand Total:</th>
-                                                    <td id="grandTotal"></td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Payment Method:</th>
-                                                    <td id="payments"></td>
-                                                </tr>
-                                                <tr id="cashRow" style="display: none;">
-                                                    <th>Paid:</th>
-                                                    <td id="cashs"></td>
-                                                </tr>
-                                                <tr id="changesRow" style="display: none;">
-                                                    <th>Change:</th>
-                                                    <td id="changes"></td>
-                                                </tr>
-                                                <tr id="transferProofRow" style="display: none;">
-                                                    <th>Proof of Transfer:</th>
-                                                    <td id="transferProofs"></td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-dismiss="modal">Kembali</button>
-                                        <button type="button" class="btn btn-primary" id="PrintInvoice">Print</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> <!-- Closing div for modal -->
-                        <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
-                            @csrf
-                            <div class="form-group">
-                                <label for="customerSelect">Customer</label>
-                                <select class="form-control" id="customerSelect" name="customer_select">
-                                    <option value="">Choose Customer</option>
-                                    @foreach ($customers as $customer)
-                                    <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
-                                    @endforeach
-                                    <option value="other">Other (fill manual)</option>
-                                </select>
-                                <div id="manualEntry" class="manual-entry mt-2" style="display: none;">
-                                    <label for="customerName">Enter Customer Name</label>
-                                    <input type="text" class="form-control" id="customerName" name="customer">
-                                </div>
-
-                                <br>
-                                <label for="paymentType">Payment Type</label>
-                                <select class="form-control" id="paymentType" name="payment_type">
-                                    <option value="">Choose Payment Type</option>
-                                    <option value="cash">Cash</option>
-                                    <option value="transfer">Transfer</option>
-                                </select>
-
-                                <div class="cash-section mt-3">
-                                    <label for="cashGiven">Money Paid</label>
-                                    <input type="number" class="form-control" id="cashGiven" name="cash"
-                                        placeholder="Masukkan jumlah uang">
-                                </div>
-
-                                <div class="transfer-section mt-3" style="display: none;">
-                                    <label for="transferProof">Upload Proof of Transfer</label>
-                                    <input type="file" class="form-control-file" id="transferProof"
-                                        name="transfer_proof">
-                                </div>
-
-                                <div class="text-right">
-                                    <button type="submit" class="btn btn-primary mt-3" name="checkout_type"
-                                        value="checkout">Checkout</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+                <h2 class="mb-4">Checkout List</h2>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Product Price</th>
+                                <th>Product Qty</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($order as $item)
+                            <tr>
+                                <td>{{ $item->product_name }}</td>
+                                <td>{{ number_format($item->product_price, 2) }}</td>
+                                <td>
+                                    {{ $item->qty }}
+                                    <form method="post" class="MinOrderItem d-inline-block" data-id="{{ $item->id }}">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="btn btn-sm btn-danger">-</button>
+                                    </form>
+                                </td>
+                                <td>{{ number_format($item->qty * $item->product_price, 2) }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr class="font-weight-bold">
+                                <td colspan="3" class="text-right">Total Price:</td>
+                                <td>{{ number_format($order->sum(fn($item) => $item->qty *
+                                    $item->product_price, 2)) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
+                <div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog"
+                    aria-labelledby="invoiceModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="invoiceModalLabel">Invoice</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="invoice-header">
+                                    <h6>No. Invoice: <span id="invoiceId"></span></h6>
+                                    <p>Date: <span id="invoiceDate"></span></p>
+                                </div>
+                                <div class="invoice-details mt-3">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <th>Cashier:</th>
+                                            <td id="cashierName"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Customer:</th>
+                                            <td id="customerNames"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Grand Total:</th>
+                                            <td id="grandTotal"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Payment Method:</th>
+                                            <td id="payments"></td>
+                                        </tr>
+                                        <tr id="cashRow" style="display: none;">
+                                            <th>Paid:</th>
+                                            <td id="cashs"></td>
+                                        </tr>
+                                        <tr id="changesRow" style="display: none;">
+                                            <th>Change:</th>
+                                            <td id="changes"></td>
+                                        </tr>
+                                        <tr id="transferProofRow" style="display: none;">
+                                            <th>Proof of Transfer:</th>
+                                            <td id="transferProofs"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnKembali">Kembali</button>
+                                <button type="button" class="btn btn-primary" id="PrintInvoice">Print</button>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- Closing div for modal -->
+                <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-group">
+                        <label for="customerSelect">Customer</label>
+                        <select class="form-control" id="customerSelect" name="customer_select">
+                            <option value="">Choose Customer</option>
+                            @foreach ($customers as $customer)
+                            <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
+                            @endforeach
+                            <option value="other">Other (fill manual)</option>
+                        </select>
+                        <div id="manualEntry" class="manual-entry mt-2" style="display: none;">
+                            <label for="customerName">Enter Customer Name</label>
+                            <input type="text" class="form-control" id="customerName" name="customer">
+                        </div>
+
+                        <br>
+                        <label for="paymentType">Payment Type</label>
+                        <select class="form-control" id="paymentType" name="payment_type">
+                            <option value="">Choose Payment Type</option>
+                            <option value="cash">Cash</option>
+                            <option value="transfer">Transfer</option>
+                        </select>
+
+                        <div class="cash-section mt-3">
+                            <label for="cashGiven">Money Paid</label>
+                            <input type="number" class="form-control" id="cashGiven" name="cash"
+                                placeholder="Masukkan jumlah uang">
+                        </div>
+
+                        <div class="transfer-section mt-3" style="display: none;">
+                            <label for="transferProof">Upload Proof of Transfer</label>
+                            <input type="file" class="form-control-file" id="transferProof" name="transfer_proof">
+                        </div>
+
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-primary mt-3" name="checkout_type"
+                                value="checkout">Checkout</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
-    </section>
+</div>
+</div>
+</section>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -227,6 +221,10 @@
                 const paymentType = $(this).val();
                 $('.cash-section').toggle(paymentType === 'cash');
                 $('.transfer-section').toggle(paymentType === 'transfer');
+            });
+
+            $('#btnKembali').on('click', function() {
+                $('#invoiceModal').modal('hide'); // Menutup modal ketika tombol "Kembali" ditekan
             });
 
             function calculateTotalPrice() {

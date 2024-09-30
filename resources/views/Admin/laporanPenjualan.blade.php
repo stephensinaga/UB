@@ -1,11 +1,10 @@
 @extends('layouts.app')
 
 @section('contents')
-    <!-- Main Content -->
-        <h1 class="text-center mb-4">Sales Report</h1>
 
         <!-- Filter Form -->
         <div class="filter-section bg-light p-4 mb-4 rounded shadow-sm">
+            <h1 class="text-center mb-4">Sales Report</h1>
             <form method="GET" action="{{ route('LaporanPenjualan') }}" class="mb-4">
                 <div class="row">
                     <!-- Payment Method Filter -->
@@ -27,7 +26,7 @@
                             <select class="form-control form-control-sm" id="cashier" name="cashier">
                                 <option value="">All</option>
                                 @foreach ($cashiers as $id => $name)
-                                    <option value="{{ $id }}" {{ request('cashier') == $id ? 'selected' : '' }}>
+                                    <option value="{{ $name }}" {{ request('cashier') == $id ? 'selected' : '' }}>
                                         {{ $name }}
                                     </option>
                                 @endforeach
