@@ -36,7 +36,7 @@
                     <option value="other">Lainnya</option>
                 </select>
                 <input type="text" name="new_product_category" id="new_product_category" class="form-control mt-2"
-                    placeholder="Masukkan kategori baru" style="display: none;">
+                    placeholder="Enter New Category" style="display: none;">
             </div>
             <div class="form-group">
                 <label for="product_price">Product Price:</label>
@@ -55,9 +55,9 @@
 <div class="card mt-5 p-3">
     <div class="d-flex justify-content-between align-items-center">
         <form method="GET" action="{{ route('CreateProductView') }}" class="d-flex">
-            <input type="text" name="search" class="form-control me-2" placeholder="Search by Name or Code" value="{{ request()->search }}">
+            <input type="text" name="search" class="form-control me-2" placeholder="Search Name or Code" value="{{ request()->search }}">
             <select name="category" class="form-select me-2">
-                <option value="">All Categories</option>
+                <option value="">All</option>
                 @foreach($category as $cat)
                     <option value="{{ $cat->category }}" {{ request()->category == $cat->category ? 'selected' : '' }}>{{ $cat->category }}</option>
                 @endforeach
@@ -149,16 +149,38 @@
                 contentType: false,
                 processData: false,
                 success: function (result) {
-                    alert('Data berhasil di tambahkan');
-                    location.reload();
-                },
-                error: function (xhr, status, error) {
-                    console.log(xhr.responseText);
-                    alert('Gagal menambahkan data');
-                }
-            });
-        });
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Data Will Be Added',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    didOpen: () => {
+                        Swal.showLoading();
+                        let timerInterval = setInterval(() => {
+                            const timer = Swal.getHtmlContainer().querySelector('b');
+                            if (timer) {
+                                timer.textContent = Swal.getTimerLeft();
+                            }
+                        }, 100);
+                    },
+                    willClose: () => {
+                        clearInterval(timerInterval);
+                    }
+                });
+                location.reload();
 
+            },
+            error: function (xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Fail Added Data',
+                    text: xhr.responseText,
+                    showConfirmButton: true
+                });
+            }
+                        });
+                    });
         $('.DeleteProduct').on('submit', function (event) {
             event.preventDefault();
 
@@ -171,12 +193,23 @@
                 type: 'DELETE',
                 data: item.serialize(),
                 success: function (result) {
-                    alert('Data berhasil dihapus');
-                    item.closest('tr').remove();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Data Will Be Delete',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        item.closest('tr').remove(); // Remove the item row after the alert closes
+                    });
                 },
                 error: function (xhr, status, error) {
-                    console.log(xhr.responseText);
-                    alert('Gagal menghapus data');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed Deleted Data',
+                        text: xhr.responseText,
+                        showConfirmButton: true
+                    });
                 }
             });
         });

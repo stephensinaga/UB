@@ -15,6 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Mike42\Escpos\EscposImage;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
 
@@ -331,20 +332,54 @@ class CashierController extends Controller
         }
     }
 
+    private function resizeImage($imagePath, $newWidth, $newHeight) {
+        list($width, $height) = getimagesize($imagePath);
+        $source = imagecreatefrompng($imagePath);
+        $newImage = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Membuat latar belakang transparan (untuk PNG)
+        imagesavealpha($newImage, true);
+        $transparent = imagecolorallocatealpha($newImage, 0, 0, 0, 127);
+        imagefill($newImage, 0, 0, $transparent);
+
+        // Resize gambar
+        imagecopyresampled($newImage, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        // Simpan gambar yang diubah ukurannya
+        $resizedPath = public_path('assets/img/resized_logo.png');
+        imagepng($newImage, $resizedPath);
+
+        // Hapus memori gambar
+        imagedestroy($source);
+        imagedestroy($newImage);
+
+        return $resizedPath;
+    }
+
     private function printToThermalPrinter($mainOrder)
     {
         $connector = new WindowsPrintConnector("POS-801");
+        $printer = null;
 
         try {
             $printer = new Printer($connector);
 
-            // Mencetak Header
-            $printer->setEmphasis(true);
-            $printer->text("INVOICE\n");
-            $printer->setEmphasis(false);
-            $printer->text("-----------------------------\n");
+            // Memuat dan meresize gambar logo
+            $logoPath = public_path('assets/img/dapur_negeri.png');
+            $resizedLogoPath = $this->resizeImage($logoPath, 125, 125); // Resize ke 200x200 piksel (ukuran lebih besar)
+            $logo = EscposImage::load($resizedLogoPath, false); // Memuat gambar yang sudah di-resize
 
-            // Mencetak Detail Order
+            // Mengatur justifikasi menjadi tengah untuk gambar
+            $printer->setJustification(Printer::JUSTIFY_CENTER);
+            $printer->bitImageColumnFormat($logo, Printer::IMG_DEFAULT);
+
+            // Cetak detail order (tanpa tulisan INVOICE)
+            $printer->setJustification(Printer::JUSTIFY_LEFT);
+            $printer->setEmphasis(true);
+            $printer->text("-----------------------------\n");
+            $printer->setEmphasis(false);
+
+            // Cetak detail order
             $printer->text("Invoice No    : {$mainOrder->id}\n");
             $printer->text("Date          : {$mainOrder->created_at->format('d/m/Y')}\n");
             $printer->text("Cashier       : {$mainOrder->cashier}\n");
@@ -357,17 +392,16 @@ class CashierController extends Controller
                 $printer->text("Transfer Proof: See Attached\n");
             }
 
-            // Mencetak Detail Produk tanpa border
+            // Cetak detail produk
             $printer->text("-----------------------------\n");
-
             foreach ($mainOrder->orders as $order) {
-                $productName = str_pad($order->product_name, 22); // Padding untuk nama produk
+                $productName = str_pad($order->product_name, 23);
                 $productPrice = "Rp" . number_format($order->product_price, 0, ',', '.');
                 $quantity = $order->qty;
                 $printer->text("{$productName}    : {$productPrice} * {$quantity}\n");
             }
 
-            // Mencetak Total
+            // Cetak total
             $printer->text("-----------------------------\n");
             $printer->text("Total         : Rp" . number_format($mainOrder->grandtotal, 0, ',', '.') . "\n");
 
@@ -382,16 +416,15 @@ class CashierController extends Controller
             // Memotong kertas
             $printer->cut();
 
-            // Tutup koneksi printer
-            $printer->close();
-
             return ['success' => true];
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
+        } finally {
+            if ($printer !== null) {
+                $printer->close(); // Pastikan selalu menutup koneksi
+            }
         }
     }
-
-
 
     public function testPrinterConnection()
     {

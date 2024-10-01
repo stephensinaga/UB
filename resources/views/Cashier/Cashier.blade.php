@@ -1,21 +1,21 @@
 @extends('layouts.app')
 
 @section('contents')
-<div class="container card-body">
-    <section class="section dashboard container-fluid">
+<div class="container card-body ">
+    <section class="container-fluid">
         <div class="row">
             <!-- Product section -->
-            <div class="col-lg-7">
+            <div class="col-lg-7 col-md-12 mb-2">
                 <!-- Adjust to col-lg-7 -->
                 <form method="GET" action="{{ route('CashierView') }}" class="mb-4">
                     <div class="row">
                         <div class="col-md-4">
-                            <input type="text" name="search" class="form-control"
-                                placeholder="Cari berdasarkan Nama Produk atau Kode" value="{{ request('search') }}">
+                            <input type="text" name="search" class="form-control" placeholder="Product / Code"
+                                value="{{ request('search') }}">
                         </div>
                         <div class="col-md-4">
                             <select name="category" class="form-control">
-                                <option value="">Semua Kategori</option>
+                                <option value="">All Category</option>
                                 @foreach ($categories as $category)
                                 <option value="{{ $category->category }}">{{ $category->category }}</option>
                                 @endforeach
@@ -50,8 +50,7 @@
                                         <p class="text-muted small product-code">{{ $item->product_code }}</p>
                                         <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
                                             @csrf
-                                            <button type="submit" class="btn btn-primary mt-2"><i
-                                                    class="bi bi-plus"></i> Order</button>
+                                            <button type="submit" class="btn btn-primary mt-2"></i> Order</button>
                                         </form>
                                     </div>
                                 </div>
@@ -178,38 +177,60 @@
                                     <label for="customerName">Masukan nama Pelanggan</label>
                                     <input type="text" class="form-control" id="customerName" name="customer">
                                 </div>
-
-                                <br>
-                                <label for="paymentType">Tipe Pembayaran</label>
-                                <select class="form-control" id="paymentType" name="payment_type">
-                                    <option value="">Pilih Tipe Pembayaran</option>
-                                    <option value="cash">Cash</option>
-                                    <option value="transfer">Transfer</option>
-                                </select>
-
-                                <div class="cash-section mt-3">
-                                    <label for="cashGiven">Uang Dibayar</label>
-                                    <input type="number" class="form-control" id="cashGiven" name="cash"
-                                        placeholder="Masukkan jumlah uang">
-                                </div>
-
-                                <div class="transfer-section mt-3" style="display: none;">
-                                    <label for="transferProof">Unggah Bukti Transfer</label>
-                                    <input type="file" class="form-control-file" id="transferProof"
-                                        name="transfer_proof">
-                                </div>
-
-                                <div class="text-right">
-                                    <button type="submit" class="btn btn-primary mt-3" name="checkout_type"
-                                        value="checkout">Checkout</button>
-                                </div>
                             </div>
-                        </form>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnKembali">Kembali</button>
+                                <button type="button" class="btn btn-primary" id="PrintInvoice">Print</button>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </div> <!-- Closing div for modal -->
+                <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-group">
+                        <label for="customerSelect">Customer</label>
+                        <select class="form-control" id="customerSelect" name="customer_select">
+                            <option value="">Choose Customer</option>
+                            @foreach ($customers as $customer)
+                            <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
+                            @endforeach
+                            <option value="other">Other (fill manual)</option>
+                        </select>
+                        <div id="manualEntry" class="manual-entry mt-2" style="display: none;">
+                            <label for="customerName">Enter Customer Name</label>
+                            <input type="text" class="form-control" id="customerName" name="customer">
+                        </div>
+
+                        <br>
+                        <label for="paymentType">Payment Type</label>
+                        <select class="form-control" id="paymentType" name="payment_type">
+                            <option value="">Choose Payment Type</option>
+                            <option value="cash">Cash</option>
+                            <option value="transfer">Transfer</option>
+                        </select>
+
+                        <div class="cash-section mt-3">
+                            <label for="cashGiven">Money Paid</label>
+                            <input type="number" class="form-control" id="cashGiven" name="cash"
+                                placeholder="Masukkan jumlah uang">
+                        </div>
+
+                        <div class="transfer-section mt-3" style="display: none;">
+                            <label for="transferProof">Upload Proof of Transfer</label>
+                            <input type="file" class="form-control-file" id="transferProof" name="transfer_proof">
+                        </div>
+
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-primary mt-3" name="checkout_type"
+                                value="checkout">Checkout</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
-    </section>
+</div>
+</div>
+</section>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -230,6 +251,10 @@
                 const paymentType = $(this).val();
                 $('.cash-section').toggle(paymentType === 'cash');
                 $('.transfer-section').toggle(paymentType === 'transfer');
+            });
+
+            $('#btnKembali').on('click', function() {
+                $('#invoiceModal').modal('hide'); // Menutup modal ketika tombol "Kembali" ditekan
             });
 
             function calculateTotalPrice() {
