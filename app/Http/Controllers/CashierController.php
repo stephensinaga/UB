@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Mike42\Escpos\EscposImage;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
@@ -47,6 +48,112 @@ class CashierController extends Controller
 
         return view('Cashier.Cashier', compact('product', 'order', 'customers', 'invoice', 'category', 'categories'));
     }
+
+    public function GuestView(Request $request)
+    {
+        // Mengambil nomor meja dan nama customer dari session
+        $tableNumber = session('table_number');
+        $customerName = session('customer_name');
+
+        $search = $request->input('search');
+        $category = $request->input('category');
+
+        $productQuery = Product::query(); // Mulai dari query builder
+
+        // Filter produk berdasarkan pencarian
+        if ($search) {
+            $productQuery->where(function ($query) use ($search) {
+                $query->where('product_name', 'like', '%' . $search . '%')
+                    ->orWhere('product_code', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Filter produk berdasarkan kategori
+        if ($category) {
+            $productQuery->where('product_category', $category);
+        }
+
+        // Ambil produk sesuai dengan filter yang ada
+        $product = $productQuery->get();
+
+        // Ambil semua kategori produk
+        $categories = Category::all();
+
+        // Mencari orders berdasarkan no_meja, customer_name, dan main_id yang null
+        $order = Order::where('no_meja', $tableNumber)
+            ->where('customer', $customerName) // Asumsi ada kolom customer_name di tabel orders
+            ->whereNull('main_id')
+            ->get();
+
+        // Ambil semua customer
+        $customers = Customer::all();
+
+        return view('Guest.Cashier', compact('product', 'order', 'customers', 'category', 'categories', 'tableNumber', 'customerName'));
+    }
+
+    public function ListOrder()
+    {
+        $mainOrders = MainOrder::whereNull('cashier')->get();
+        return view('Cashier.ListOrder', compact('mainOrders'));
+    }
+
+
+    public function SaveSession(Request $request)
+    {
+        $request->validate([
+            'table_number' => 'required|string',
+            'customer_name' => 'required|string',
+        ]);
+
+        // Simpan data ke session
+        session([
+            'table_number' => $request->table_number,
+            'customer_name' => $request->customer_name,
+        ]);
+
+        // Kembalikan respon sukses
+        return response()->json(['success' => true]);
+    }
+
+    public function GuestOrder($id)
+    {
+        // Mengambil produk berdasarkan ID
+        $product = Product::where('id', $id)->first();
+
+        // Pastikan produk ditemukan
+        if ($product) {
+            // Mengambil nomor meja dari session
+            $tableNumber = session('table_number');
+            $customerName = session('customer_name');
+
+            // Cek apakah produk sudah diorder sebelumnya
+            $checkItem = Order::where('product_id', $product->id)
+                ->where('no_meja', $tableNumber) // Cek berdasarkan no_meja juga
+                ->whereNull('main_id')
+                ->first();
+
+            if ($checkItem) {
+                // Jika sudah diorder, tambahkan jumlahnya
+                $checkItem->qty += 1;
+                $checkItem->save();
+            } else {
+                // Jika belum diorder, buat order baru
+                $order = new Order();
+                $order->customer = $customerName;
+                $order->no_meja = $tableNumber;
+                $order->product_id = $product->id;
+                $order->product_name = $product->product_name;
+                $order->product_code = $product->product_code;
+                $order->product_category = $product->product_category;
+                $order->product_price = $product->product_price;
+                $order->qty = 1;
+
+                $order->save();
+            }
+        }
+        return back();
+    }
+
 
     public function Order($id)
     {
@@ -89,6 +196,61 @@ class CashierController extends Controller
                 $product->save();
             }
         }
+    }
+
+    public function GuestCheckOut(Request $request)
+    {
+        // Ambil no_meja dari request atau session
+        $tableNumber = $request->input('no_meja') ?? session('table_number');
+
+        // Pastikan bahwa no_meja ada, jika tidak, kembalikan error
+        if (!$tableNumber) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => ['no_meja' => ['The no meja field is required.']]
+            ], 422);
+        }
+
+        $customerName = session('customer_name');
+
+        // Generate no_invoice, incremented and reset every day
+        $today = Carbon::now()->format('d-m-y');
+        $lastInvoice = MainOrder::whereDate('created_at', $today)->orderBy('no_invoice', 'desc')->first();
+        $noInvoice = $lastInvoice ? $lastInvoice->no_invoice + 1 : 1;
+
+        // Get pending orders for the table
+        $orders = Order::where('no_meja', $tableNumber)->whereNull('main_id')->get();
+
+        if ($orders->isEmpty()) {
+            return response()->json(['error' => 'No orders found for this table.'], 404);
+        }
+
+        // Calculate grand total
+        $grandtotal = $orders->sum(function ($order) {
+            return $order->qty * $order->product_price;
+        });
+
+        // Create new main order for checkout
+        $Checkout = new MainOrder();
+        $Checkout->no_invoice = $noInvoice;
+        $Checkout->no_meja = $tableNumber;
+        $Checkout->customer = $customerName; // For guest
+        $Checkout->grandtotal = $grandtotal;
+        $Checkout->status = 'pending';
+        $Checkout->save();
+
+        // Update each order to link with main order
+        $mainOrderId = $Checkout->id;
+
+        foreach ($orders as $order) {
+            $order->main_id = $mainOrderId;
+            $order->save();
+        }
+
+        return response()->json([
+            'message' => 'Guest checkout successful',
+            'invoice' => $Checkout,
+        ], 200);
     }
 
     public function CheckOut(Request $request)
@@ -142,8 +304,8 @@ class CashierController extends Controller
 
         $invoice = MainOrder::where('id', $Checkout->id)->first();
 
-        $pdf = FacadePdf::loadView('struk.invoice_template', compact('invoice', 'orders', 'customer'))
-            ->setPaper([0, 0, 226.77, 841.89]); // Ukuran 80mm (80mm x panjang)
+        // $pdf = FacadePdf::loadView('struk.invoice_template', compact('invoice', 'orders', 'customer'))
+        //     ->setPaper([0, 0, 226.77, 841.89]);
 
         return response()->json([
             'message' => 'Checkout berhasil',

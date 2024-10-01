@@ -15,6 +15,13 @@ Route::middleware(['guest'])->group(function () {
         Route::post('login', 'loginAksi')->name('login.aksi');
         Route::get('logout', 'logout')->middleware('auth')->name('logout');
     });
+
+    Route::prefix('guest')->group(function () {
+        Route::post('save/session', [CashierController::class, 'SaveSession'])->name('SaveSession');
+        Route::get('cashier/view', [CashierController::class, 'GuestView'])->name('GuestCashierView');
+        Route::post('order/selected/product/{id}', [CashierController::class, 'GuestOrder'])->name('GuestOrder');
+        Route::post('checkout/selected/order', [CashierController::class, 'GuestCheckout'])->name('GuestCheckout');
+    });
 });
 
 Route::controller(AuthController::class)->group(function () {
@@ -39,7 +46,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('laporan/penjualan/all', [AdminController::class, 'laporanPenjualan'])->name('LaporanPenjualan');
         Route::get('export/laporan/penjualan/filtered', [ExportController::class, 'ExportLaporanPenjualan'])->name('ExportLaporanPenjualan');
     });
-
+      
     // Rute Cashier dengan Middleware 'role:cashier'
     Route::middleware(['auth', 'role:cashier'])->prefix('cashier')->group(function () {
         Route::get('view', [CashierController::class, 'CashierView'])->name('CashierView');

@@ -15,7 +15,9 @@ class CreateMainOrdersTable extends Migration
     {
         Schema::create('main_orders', function (Blueprint $table) {
             $table->id();
-            $table->string('cashier');
+            $table->integer('no_invoice');
+            $table->integer('no_meja');
+            $table->string('cashier')->nullable();
             $table->string('customer');
             $table->bigInteger('grandtotal');
             $table->enum('payment', ['cash','transfer'])->nullable();
