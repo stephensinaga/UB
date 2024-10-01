@@ -15,6 +15,13 @@ Route::middleware(['guest'])->group(function () {
         Route::post('login', 'loginAksi')->name('login.aksi');
         Route::get('logout', 'logout')->middleware('auth')->name('logout');
     });
+
+    Route::prefix('guest')->group(function () {
+        Route::post('save/session', [CashierController::class, 'SaveSession'])->name('SaveSession');
+        Route::get('cashier/view', [CashierController::class, 'GuestView'])->name('GuestCashierView');
+        Route::post('order/selected/product/{id}', [CashierController::class, 'GuestOrder'])->name('GuestOrder');
+        Route::post('checkout/selected/order', [CashierController::class, 'GuestCheckout'])->name('GuestCheckout');
+    });
 });
 
 Route::controller(AuthController::class)->group(function () {
@@ -24,6 +31,7 @@ Route::controller(AuthController::class)->group(function () {
 
 
 Route::middleware(['auth'])->group(function () {
+
     Route::prefix('admin')->group(function () {
         Route::get('dashboard', [AdminController::class, 'Dashboard'])->name('Dashboard'); //Dashboard Admin - Cashier
         Route::get('create/product/view', [AdminController::class, 'CreateProductView'])->name('CreateProductView'); //Tampilan Penambahan product baru
@@ -34,13 +42,17 @@ Route::middleware(['auth'])->group(function () {
 
         // Bagian Laporan Pembelian Export PDF
         Route::get('export/laporan/pdf', [AdminController::class, 'ExportLaporanPDF'])->name('ExportLaporanPDF'); //Function Download Laporan PDF
-        Route::get('laporan/view', [AdminController::class, 'SalesReport'])->name   ('SalesReportView'); //View Export Laporan PDF
+        Route::get('laporan/view', [AdminController::class, 'SalesReport'])->name('SalesReportView'); //View Export Laporan PDF
 
         Route::get('laporan/penjualan/all', [AdminController::class, 'laporanPenjualan'])->name('LaporanPenjualan'); //Tampilan untuk Laporan Penjualan(Admin)
 
         Route::get('export/laporan/penjualan/filtered', [ExportController::class, 'ExportLaporanPenjualan'])->name('ExportLaporanPenjualan'); //Export Laporan Penjualan Filtered
+
+        Route::get('list/order/need/proccess', [CashierController::class, 'ListOrder'])->name('ListOrder');
     });
 });
+
+
 
 Route::prefix('cashier')->group(function () {
     Route::get('view', [CashierController::class, 'CashierView'])->name('CashierView'); //Tampilan Order Product
@@ -52,7 +64,7 @@ Route::prefix('cashier')->group(function () {
     Route::get('history/penjualan/', [AdminController::class, 'HistoryPenjualanCashier'])->name('HistoryPenjualanCashier'); //View Laporan Penjualan per User
     Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporan'])->name('DetailLaporan'); //Endpoint Detail Pembelian Tiap Customer
     Route::get('export/laporan/penjualan/harian', [ExportController::class, 'ExportLaporanPenjualanHarian'])->name('ExportLaporanPenjualanHarian'); //Export Laporan Penjualan Harian
-Route::get('test/print', [CashierController::class, 'testPrinterConnection'])->name('testss');
+    Route::get('test/print', [CashierController::class, 'testPrinterConnection'])->name('testss');
 
 
     // Route::put('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');

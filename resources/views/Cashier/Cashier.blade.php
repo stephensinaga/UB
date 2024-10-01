@@ -46,7 +46,7 @@
                                     </div>
                                     <div class="ps-3 flex-grow-1">
                                         <h6 class="product-price" style="font-size: 1rem;">Rp{{
-                                            number_format($item->product_price, 2) }}</h6>
+                                            number_format($item->product_price) }}</h6>
                                         <p class="text-muted small product-code">{{ $item->product_code }}</p>
                                         <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
                                             @csrf
@@ -82,7 +82,7 @@
                                     @foreach ($order as $item)
                                     <tr>
                                         <td>{{ $item->product_name }}</td>
-                                        <td>{{ number_format($item->product_price, 2) }}</td>
+                                        <td>{{ number_format($item->product_price) }}</td>
                                         <td>
                                             {{ $item->qty }}
                                             <form method="post" class="MinOrderItem d-inline-block"
@@ -92,7 +92,7 @@
                                                 <button type="submit" class="btn btn-sm btn-danger">-</button>
                                             </form>
                                         </td>
-                                        <td>{{ number_format($item->qty * $item->product_price, 2) }}</td>
+                                        <td>{{ number_format($item->qty * $item->product_price) }}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -100,11 +100,12 @@
                                     <tr class="font-weight-bold">
                                         <td colspan="3" class="text-right">Total Price:</td>
                                         <td>{{ number_format($order->sum(fn($item) => $item->qty *
-                                            $item->product_price), 2) }}</td>
+                                            $item->product_price)) }}</td>
                                     </tr>
                                 </tfoot>
                             </table>
                         </div>
+                        
                         <div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog"
                             aria-labelledby="invoiceModalLabel" aria-hidden="true">
                             <div class="modal-dialog" role="document">
@@ -161,6 +162,7 @@
                                 </div>
                             </div>
                         </div> <!-- Closing div for modal -->
+                        
                         <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
                             @csrf
                             <div class="form-group">
