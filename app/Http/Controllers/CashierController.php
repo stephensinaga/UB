@@ -26,8 +26,10 @@ class CashierController extends Controller
         $search = $request->input('search');
         $category = $request->input('category');
 
-        $productQuery = Product::query();  // Mulai dari query builder
+        // Mulai dari query builder
+        $productQuery = Product::query();
 
+        // Filter berdasarkan search input
         if ($search) {
             $productQuery->where(function ($query) use ($search) {
                 $query->where('product_name', 'like', '%' . $search . '%')
@@ -35,13 +37,16 @@ class CashierController extends Controller
             });
         }
 
+        // Filter berdasarkan kategori
         if ($category) {
-            $productQuery->where('product_category', $category);  // Tambahkan ke query builder
+            $productQuery->where('product_category', $category);
         }
 
-        $product = $productQuery->get();  // Panggil get() hanya setelah semua query selesai
+        // Ambil data produk dengan pagination
+        $product = $productQuery->get(); // Batasi 12 produk per halaman
         $categories = Category::all();
 
+        // Data lainnya
         $order = Order::whereNull('main_id')->get();
         $customers = Customer::all();
         $invoice = MainOrder::latest()->first();
@@ -73,10 +78,7 @@ class CashierController extends Controller
             $productQuery->where('product_category', $category);
         }
 
-        // Ambil produk sesuai dengan filter yang ada
-        $product = $productQuery->get();
-
-        // Ambil semua kategori produk
+        $product = $productQuery->get(); // Batasi 12 produk per halaman
         $categories = Category::all();
 
         // Mencari orders berdasarkan no_meja, customer_name, dan main_id yang null
@@ -196,6 +198,45 @@ class CashierController extends Controller
                 $product->save();
             }
         }
+        return redirect()->route('CashierView');
+    }
+
+    public function AddOrderItem($id)
+    {
+        $product = Order::where('id', $id)->first();
+
+        if ($product) {
+            $product->qty += 1;
+            $product->save();
+        }
+        return redirect()->route('CashierView');
+    }
+
+    public function MinOrderItemGuest($id)
+    {
+        $product = Order::where('id', $id)->first();
+
+        if ($product) {
+            $product->qty -= 1;
+
+            if ($product->qty <= 0) {
+                $product->delete();
+            } else {
+                $product->save();
+            }
+        }
+        return redirect()->route('GuestCashierView');
+    }
+
+    public function AddOrderItemGuest($id)
+    {
+        $product = Order::where('id', $id)->first();
+
+        if ($product) {
+            $product->qty += 1;
+            $product->save();
+        }
+        return redirect()->route('GuestCashierView');
     }
 
     public function GuestCheckOut(Request $request)
@@ -214,8 +255,10 @@ class CashierController extends Controller
         $customerName = session('customer_name');
 
         // Generate no_invoice, incremented and reset every day
-        $today = Carbon::now()->format('d-m-y');
+        $today = Carbon::today(); // Use Carbon::today() to compare correctly with whereDate
         $lastInvoice = MainOrder::whereDate('created_at', $today)->orderBy('no_invoice', 'desc')->first();
+
+        // Increment invoice number
         $noInvoice = $lastInvoice ? $lastInvoice->no_invoice + 1 : 1;
 
         // Get pending orders for the table
@@ -284,7 +327,16 @@ class CashierController extends Controller
 
         $cashier = Auth::user();
 
+        // Generate invoice number
+        $today = now()->format('Y-m-d');
+        // Cari pesanan terakhir pada hari ini
+        $lastOrder = MainOrder::whereDate('created_at', $today)->orderBy('id', 'desc')->first();
+        // Jika belum ada pesanan hari ini, nomor invoice dimulai dari 1, jika ada, increment dari nomor terakhir
+        $newInvoiceNumber = $lastOrder ? ($lastOrder->no_invoice + 1) : 1;
+
         $Checkout = new MainOrder();
+        $Checkout->no_meja = $request->no_meja;
+        $Checkout->no_invoice = $newInvoiceNumber; // Assign new invoice number
         $Checkout->cashier = $cashier->name;
         $Checkout->customer = $customer->customer;
         $Checkout->grandtotal = $grandtotal;
@@ -299,19 +351,55 @@ class CashierController extends Controller
 
         foreach ($orders as $order) {
             $order->main_id = $mainOrderId;
+            $order->customer = $customer->customer;
+            $order->no_meja = $request->no_meja;
             $order->save();
         }
 
         $invoice = MainOrder::where('id', $Checkout->id)->first();
-
-        // $pdf = FacadePdf::loadView('struk.invoice_template', compact('invoice', 'orders', 'customer'))
-        //     ->setPaper([0, 0, 226.77, 841.89]);
 
         return response()->json([
             'message' => 'Checkout berhasil',
             'invoice' => $invoice,
         ], 200);
     }
+
+    public function ProcessPendingOrder($id, $payment_type, $cash = null, $img = null)
+    {
+        $data = MainOrder::findOrFail($id);
+        $cashier = Auth::user(); // Pastikan user login
+
+        // Jika cashier tidak ditemukan (user tidak login)
+        if (!$cashier) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Hitung kembalian jika pembayaran tunai
+        $cashGiven = $cash ?? 0;
+        $changes = $cashGiven - $data->grandtotal;
+
+        // Proses bukti transfer jika ada
+        $transferImage = null;
+        if ($img && request()->hasFile('img')) {
+            $transfer = request()->file('img');
+            $transferImageName = time() . '_' . $transfer->getClientOriginalName();
+            $transferImage = $transfer->storeAs('bukti_transfer', $transferImageName, 'public');
+        }
+
+        // Update data order
+        $data->cashier = $cashier->name;
+        $data->payment = $payment_type;
+        $data->cash = $cashGiven;
+        $data->changes = $changes;
+        $data->transfer_image = $transferImage;
+        $data->status = 'checkout';
+        $data->save();
+
+        return response()->json([
+            'message' => 'Order processed successfully',
+            'invoice' => $data,
+        ], 200);    }
+
 
     public function printInvoice($id)
     {
@@ -332,7 +420,8 @@ class CashierController extends Controller
         }
     }
 
-    private function resizeImage($imagePath, $newWidth, $newHeight) {
+    private function resizeImage($imagePath, $newWidth, $newHeight)
+    {
         list($width, $height) = getimagesize($imagePath);
         $source = imagecreatefrompng($imagePath);
         $newImage = imagecreatetruecolor($newWidth, $newHeight);
@@ -366,7 +455,7 @@ class CashierController extends Controller
 
             // Memuat dan meresize gambar logo
             $logoPath = public_path('assets/img/dapur_negeri.png');
-            $resizedLogoPath = $this->resizeImage($logoPath, 125, 125); // Resize ke 200x200 piksel (ukuran lebih besar)
+            $resizedLogoPath = $this->resizeImage($logoPath, 210, 175); // Resize ke 200x200 piksel (ukuran lebih besar)
             $logo = EscposImage::load($resizedLogoPath, false); // Memuat gambar yang sudah di-resize
 
             // Mengatur justifikasi menjadi tengah untuk gambar
@@ -384,6 +473,12 @@ class CashierController extends Controller
             $printer->text("Date          : {$mainOrder->created_at->format('d/m/Y')}\n");
             $printer->text("Cashier       : {$mainOrder->cashier}\n");
             $printer->text("Customer      : {$mainOrder->customer}\n");
+
+            // Tambahkan nomor meja jika ada
+            if (isset($mainOrder->table_number)) {
+                $printer->text("Table No      : {$mainOrder->table_number}\n");
+            }
+
             $printer->text("Payment Method: " . ucfirst($mainOrder->payment) . "\n");
 
             if ($mainOrder->payment === 'cash') {
@@ -426,6 +521,7 @@ class CashierController extends Controller
         }
     }
 
+
     public function testPrinterConnection()
     {
         // Ganti dengan nama printer Anda
@@ -446,3 +542,4 @@ class CashierController extends Controller
         }
     }
 }
+    

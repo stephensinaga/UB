@@ -32,23 +32,23 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="customerModalLabel">Informasi Pelanggan dan Nomor Meja</h5>
+                <h5 class="modal-title" id="customerModalLabel">Customer Name and Table Number</h5>
             </div>
             <div class="modal-body">
                 <form id="SessionForm" action="javascript:void(0)">
                     @csrf
                     @method('POST')
                     <div class="form-group">
-                        <label for="tableNumber">Nomor Meja</label>
+                        <label for="tableNumber">Table Number</label>
                         <input type="text" class="form-control" id="tableNumber" name="table_number"
-                            placeholder="Masukkan nomor meja" required>
+                            placeholder="Table Number" required>
                     </div>
                     <div class="form-group">
-                        <label for="customerName">Nama Pelanggan</label>
+                        <label for="customerName">Customer Name</label>
                         <input type="text" class="form-control" id="customerName" name="customer_name"
-                            placeholder="Masukkan nama pelanggan" required>
+                            placeholder="Customer Name" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
             </div>
         </div>
@@ -57,62 +57,54 @@
 
 <div class="container card-body" id="mainContent" style="display: none;">
     <section class="section dashboard container-fluid">
-        <div class="row">
+        <div class="row mt-3">
             <!-- Product section -->
             <div class="col-lg-7">
                 <!-- Adjust to col-lg-7 -->
-                <form method="GET" action="{{ route('GuestCashierView') }}" class="mb-4">
+                <form id="filterForm" method="GET" action="{{ route('CashierView') }}" class="mb-4">
                     <div class="row">
                         <div class="col-md-4">
-                            <input type="text" name="search" class="form-control"
-                                placeholder="Cari berdasarkan Nama Produk atau Kode" value="{{ request('search') }}">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Product / Code" value="{{ request('search') }}">
                         </div>
                         <div class="col-md-4">
-                            <select name="category" class="form-control">
-                                <option value="">Semua Kategori</option>
+                            <select name="category" id="categorySelect" class="form-control">
+                                <option value="">Categories</option>
                                 @foreach ($categories as $category)
-                                    <option value="{{ $category->category }}">{{ $category->category }}</option>
+                                    <option value="{{ $category->category }}" {{ request('category') == $category->category ? 'selected' : '' }}>
+                                        {{ $category->category }}
+                                    </option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary">Filter</button>
                         </div>
                     </div>
                 </form>
 
-                <div class="row" style="max-height: 650px; overflow-y: auto;">
+                <div class="row" id="productList" style="max-height: 650px; overflow-y: auto;">
                     @foreach ($product as $item)
-                        <div class="col-xxl-4 col-md-6 mb-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h4 class="card-title text-truncate" style="font-size: 1rem;">
-                                        {{ $item->product_name }}
-                                    </h4>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon d-flex align-items-center justify-content-center"
-                                            style="width: 150px; height: 150px;">
-                                            @if ($item->product_images)
-                                                <img src="{{ asset('storage/' . $item->product_images) }}"
-                                                    alt="Product Image" class="img-fluid" style="object-fit: cover;">
-                                            @else
-                                                <i class="bi bi-cart" style="font-size: 3rem;"></i>
-                                            @endif
-                                        </div>
-                                        <div class="ps-3 flex-grow-1">
-                                            <h6 class="product-price" style="font-size: 1rem;">
-                                                Rp{{ number_format($item->product_price) }}</h6>
-                                            <p class="text-muted small product-code">{{ $item->product_code }}</p>
-                                            <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
-                                                @csrf
-                                                <button type="submit" class="btn btn-primary mt-2"><i
-                                                        class="bi bi-plus"></i> Order</button>
-                                            </form>
-                                        </div>
+                    <div class="col-xxl-4 col-md-6 mb-4 product-item" data-name="{{ $item->product_name }}" data-code="{{ $item->product_code }}" data-category="{{ strtolower($item->product_category) }}">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title text-truncate" style="font-size: 1rem;">{{ $item->product_name }}</h4>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                                        @if ($item->product_images)
+                                        <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" class="img-fluid" style="object-fit: cover;">
+                                        @else
+                                        <i class="bi bi-cart" style="font-size: 3rem;"></i>
+                                        @endif
+                                    </div>
+                                    <div class="ps-3 flex-grow-1">
+                                        <h6 class="product-price" style="font-size: 1rem;">Rp{{ number_format($item->product_price) }}</h6>
+                                        <p class="text-muted small product-code">{{ $item->product_code }}</p>
+                                        <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
+                                            @csrf
+                                            <button type="submit" class="btn btn-primary mt-2">Order</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
                     @endforeach
                 </div>
             </div>
@@ -140,11 +132,15 @@
                                             <td>{{ number_format($item->product_price) }}</td>
                                             <td>
                                                 {{ $item->qty }}
-                                                <form method="post" class="MinOrderItem d-inline-block"
-                                                    data-id="{{ $item->id }}">
+                                                <form method="post" action="{{ route('MinOrderItemGuest', $item->id) }}" class="d-inline-block">
                                                     @csrf
                                                     @method('PUT')
                                                     <button type="submit" class="btn btn-sm btn-danger">-</button>
+                                                </form>
+                                                <form method="post" action="{{ route('AddOrderItemGuest', $item->id) }}" class="d-inline-block">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit" class="btn btn-sm btn-success">+</button>
                                                 </form>
                                             </td>
                                             <td>{{ number_format($item->qty * $item->product_price) }}</td>
@@ -317,10 +313,10 @@
         });
 
         // Reducing item quantity
-        $('tbody').on('submit', '.MinOrderItem', function(event) {
+        $('tbody').on('submit', '.MinOrderItemGuest', function(event) {
             event.preventDefault();
             let id = $(this).data('id');
-            let url = `/cashier/min/pending/order/${id}`;
+            let url = `/guest/min/pending/order/${id}`;
 
             $.ajax({
                 url: url,
@@ -339,4 +335,65 @@
             });
         });
     });
+
+    // Adding item quantity
+    $('tbody').on('submit', '.AddOrderItemGuest', function(event) {
+        event.preventDefault();
+        let id = $(this).data('id');
+        let url = `/guest/add/pending/order/${id}`; // URL untuk menambah kuantitas
+
+        $.ajax({
+            url: url,
+            type: 'PUT',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(result) {
+                alert('Penambahan Berhasil');
+                location.reload();
+            },
+            error: function(xhr) {
+                console.log(xhr.responseText);
+                alert('Penambahan Gagal 🤦‍♂️');
+            }
+        });
+    });
+
+    $('#searchInput, #categorySelect').on('input change', function() {
+                filterProducts(); // Panggil fungsi filter saat ada perubahan input
+            });
+
+            function filterProducts() {
+            var search = $('#searchInput').val().toLowerCase();
+            var category = $('#categorySelect').val();
+
+            console.log('Filter by category:', category); // Tambahkan ini untuk melihat nilai kategori
+
+            // Loop semua produk dan hide/show berdasarkan filter
+            $('.product-item').each(function() {
+                var productName = $(this).data('name').toLowerCase();
+                var productCode = $(this).data('code').toLowerCase();
+                var productCategory = $(this).data('category');
+
+                console.log('Product category:', productCategory); // Tambahkan ini untuk melihat kategori produk
+
+                // Cek apakah produk sesuai dengan search dan category
+                var isVisible = true;
+
+                if (search && !productName.includes(search) && !productCode.includes(search)) {
+                    isVisible = false;
+                }
+
+                if (category && productCategory.toLowerCase() !== category.toLowerCase()) {
+                    isVisible = false;
+                }
+
+                // Tampilkan atau sembunyikan produk
+                if (isVisible) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
 </script>

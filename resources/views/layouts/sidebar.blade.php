@@ -30,6 +30,13 @@ $user = Auth::user();
         </li>
 
         <li class="nav-item">
+            <a class="nav-link " href="{{ route('ListOrder') }}">
+                <i class="bi bi-file-text"></i>
+                <span>Pending Order</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
             <a class="nav-link " href="{{ route('HistoryPenjualanCashier') }}">
                 <i class="bi bi-calendar-check"></i>
                 <span>Sales History</span>
@@ -46,12 +53,6 @@ $user = Auth::user();
         </li>
         @endif
 
-        <li class="nav-item">
-            <a class="nav-link" href="">
-                <i class="bi bi-cash-coin"></i>
-                <span>Debts - Receivbles</span>
-            </a>
-        </li>
     </ul>
 
 </aside>

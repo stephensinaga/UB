@@ -21,6 +21,8 @@ Route::middleware(['guest'])->group(function () {
         Route::get('cashier/view', [CashierController::class, 'GuestView'])->name('GuestCashierView');
         Route::post('order/selected/product/{id}', [CashierController::class, 'GuestOrder'])->name('GuestOrder');
         Route::post('checkout/selected/order', [CashierController::class, 'GuestCheckout'])->name('GuestCheckout');
+        Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItemGuest'])->name('MinOrderItemGuest');
+        Route::put('add/pending/order/{id}', [CashierController::class, 'AddOrderItemGuest'])->name('AddOrderItemGuest');
     });
 });
 
@@ -46,14 +48,20 @@ Route::middleware(['auth'])->group(function () {
         Route::get('laporan/penjualan/all', [AdminController::class, 'laporanPenjualan'])->name('LaporanPenjualan');
         Route::get('export/laporan/penjualan/filtered', [ExportController::class, 'ExportLaporanPenjualan'])->name('ExportLaporanPenjualan');
     });
-      
+
     // Rute Cashier dengan Middleware 'role:cashier'
     Route::middleware(['auth', 'role:cashier'])->prefix('cashier')->group(function () {
         Route::get('view', [CashierController::class, 'CashierView'])->name('CashierView');
         Route::post('order/selected/product/{id}', [CashierController::class, 'Order'])->name('OrderProduct');
         Route::post('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');
         Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItem'])->name('MinOrderItem');
+        Route::put('add/pending/order/{id}', [CashierController::class, 'AddOrderItem'])->name('AddOrderItem');
+
+
         Route::get('print/invoice/{id}', [CashierController::class, 'printInvoice'])->name('PrintInvoice');
+
+        Route::get('list/pending/order', [CashierController::class, 'ListOrder'])->name('ListOrder');
+        Route::put('process/pending/order/{id}/{type}/{cash}/{img}', [CashierController::class, 'ProcessPendingOrder'])->name('ProcessPendingOrder');
 
         // Laporan Penjualan
         Route::get('history/penjualan/', [AdminController::class, 'HistoryPenjualanCashier'])->name('HistoryPenjualanCashier');
