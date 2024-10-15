@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CashierController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ExportLaporan;
+use App\Http\Controllers\StockController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['guest'])->group(function () {
@@ -45,8 +46,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('laporan/view', [AdminController::class, 'SalesReport'])->name('SalesReportView');
         Route::get('laporan/penjualan/all', [AdminController::class, 'laporanPenjualan'])->name('LaporanPenjualan');
         Route::get('export/laporan/penjualan/filtered', [ExportController::class, 'ExportLaporanPenjualan'])->name('ExportLaporanPenjualan');
+
+        // Stock
+        Route::prefix('stock')->group(function () {
+            Route::get('material', [StockController::class, 'StorageView'])->name('StorageView');
+            Route::post('new/material', [StockController::class, 'NewMaterial'])->name('NewMaterial');
+            Route::get('material/update/view/{id}', [StockController::class, 'UpdateView'])->name('UpdateView');
+            Route::post('update/material/stock', [StockController::class, 'UpdateProcess'])->name('UpdateProcess');
+            Route::get('filter/material', [StockController::class, 'FilterMaterial'])->name('FilterMaterial');
+            Route::get('export/report/material', [StockController::class, 'ExportLaporanStock'])->name('ExportLaporanStock');
+        });
     });
-      
+
     // Rute Cashier dengan Middleware 'role:cashier'
     Route::middleware(['auth', 'role:cashier'])->prefix('cashier')->group(function () {
         Route::get('view', [CashierController::class, 'CashierView'])->name('CashierView');
