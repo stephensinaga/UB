@@ -250,7 +250,7 @@
             var search = $('#searchInput').val().toLowerCase();
             var category = $('#categorySelect').val();
 
-            console.log('Filter by category:', category); // Tambahkan ini untuk melihat nilai kategori
+            console.log('Filter by category:', category);
 
             // Loop semua produk dan hide/show berdasarkan filter
             $('.product-item').each(function() {

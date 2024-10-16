@@ -375,16 +375,19 @@ class CashierController extends Controller
         }
 
         // Hitung kembalian jika pembayaran tunai
-        $cashGiven = $cash ?? 0;
-        $changes = $cashGiven - $data->grandtotal;
+        $cashGiven = (float)$cash;
+        $changes = (float)$cashGiven - (float)$data->grandtotal;
 
         // Proses bukti transfer jika ada
         $transferImage = null;
-        if ($img && request()->hasFile('img')) {
+        if ($img) {
             $transfer = request()->file('img');
             $transferImageName = time() . '_' . $transfer->getClientOriginalName();
             $transferImage = $transfer->storeAs('bukti_transfer', $transferImageName, 'public');
+        } else {
+            $transferImage = null;
         }
+
 
         // Update data order
         $data->cashier = $cashier->name;
@@ -398,7 +401,8 @@ class CashierController extends Controller
         return response()->json([
             'message' => 'Order processed successfully',
             'invoice' => $data,
-        ], 200);    }
+        ], 200);
+    }
 
 
     public function printInvoice($id)
@@ -542,4 +546,3 @@ class CashierController extends Controller
         }
     }
 }
-    

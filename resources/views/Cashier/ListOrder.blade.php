@@ -2,7 +2,7 @@
 
 @section('contents')
 <div class="container">
-    <h1 class="my-4">List Order</h1>
+    <h1 class="my-4">Order List</h1>
 
     @if ($mainOrders->isEmpty())
     <div class="alert alert-info">
@@ -10,8 +10,8 @@
     </div>
     @else
     <div class="row fw-bold mb-2">
-        <div class="col-2">No Invoice</div>
-        <div class="col-2">No Meja</div>
+        <div class="col-2">Invoice No</div>
+        <div class="col-2">Table No</div>
         <div class="col-3">Customer</div>
         <div class="col-3">Grand Total</div>
         <div class="col-2">Actions</div>
@@ -43,17 +43,17 @@
                 </div>
                 <div class="modal-body">
                     <!-- Order Details -->
-                    <p><strong>No Invoice:</strong> {{ $order->no_invoice }}</p>
-                    <p><strong>No Meja:</strong> {{ $order->no_meja }}</p>
+                    <p><strong>Invoice No:</strong> {{ $order->no_invoice }}</p>
+                    <p><strong>Table No:</strong> {{ $order->no_meja }}</p>
                     <p><strong>Customer:</strong> {{ $order->customer }}</p>
                     <p><strong>Grand Total:</strong> Rp{{ number_format($order->grandtotal, 0, ',', '.') }}</p>
 
                     <hr>
 
-                    <h5>Products Ordered</h5>
+                    <h5>Ordered Products</h5>
                     <ul>
                         @foreach ($order->orders as $product)
-                        <li>{{ $product->product_name }}, Quantity : {{ $product->qty }}, Price: Rp{{
+                        <li>{{ $product->product_name }}, Quantity: {{ $product->qty }}, Price: Rp{{
                             number_format($product->product_price, 0, ',', '.') }}</li>
                         @endforeach
                     </ul>
@@ -75,15 +75,14 @@
                         </div>
 
                         <div class="cash-section mt-3 mb-3" id="cashSection-{{ $order->id }}">
-                            <label for="cashGiven-{{ $order->id }}">Money Paid</label>
+                            <label for="cashGiven-{{ $order->id }}">Amount Paid</label>
                             <input type="number" class="form-control" id="cashGiven-{{ $order->id }}" name="cash"
-                                placeholder="Masukkan jumlah uang">
+                                placeholder="Enter payment amount">
                         </div>
 
                         <div class="transfer-section mt-3 mb-3" id="transferSection-{{ $order->id }}">
-                            <label for="transferProof-{{ $order->id }}">Upload Proof of Transfer</label>
-                            <input type="file" class="form-control-file" id="transferProof-{{ $order->id }}"
-                                name="transfer_proof">
+                            <label for="transferProof-{{ $order->id }}">Upload Transfer Proof</label>
+                            <input type="file" class="form-control-file" id="transferProof-{{ $order->id }}" name="img">
                         </div>
 
                         <div class="modal-footer">
@@ -111,39 +110,39 @@
                 </div>
                 <div class="modal-body">
                     <div class="invoice-header">
-                        <h6>No. Invoice: <span id="invoiceId"></span></h6>
-                        <p>Tanggal: <span id="invoiceDate"></span></p>
-                        <!-- Tambahkan No Meja -->
-                        <p>No. Meja: <span id="tableNumber"></span></p>
+                        <h6>Invoice No: <span id="invoiceId"></span></h6>
+                        <p>Date: <span id="invoiceDate"></span></p>
+                        <!-- Add Table Number -->
+                        <p>Table No: <span id="tableNumber"></span></p>
                     </div>
                     <div class="invoice-details mt-3">
                         <table class="table table-bordered">
                             <tr>
-                                <th>Kasir:</th>
+                                <th>Cashier:</th>
                                 <td id="cashierName"></td>
                             </tr>
                             <tr>
-                                <th>Pelanggan:</th>
+                                <th>Customer:</th>
                                 <td id="customerNames"></td>
                             </tr>
                             <tr>
-                                <th>Total Harga:</th>
+                                <th>Total Price:</th>
                                 <td id="grandTotal"></td>
                             </tr>
                             <tr>
-                                <th>Metode Pembayaran:</th>
+                                <th>Payment Method:</th>
                                 <td id="payments"></td>
                             </tr>
                             <tr id="cashRow" style="display: none;">
-                                <th>Uang Dibayar:</th>
+                                <th>Amount Paid:</th>
                                 <td id="cashs"></td>
                             </tr>
                             <tr id="changesRow" style="display: none;">
-                                <th>Kembalian:</th>
+                                <th>Change:</th>
                                 <td id="changes"></td>
                             </tr>
                             <tr id="transferProofRow" style="display: none;">
-                                <th>Bukti Transfer:</th>
+                                <th>Transfer Proof:</th>
                                 <td id="transferProofs"></td>
                             </tr>
                         </table>
@@ -226,7 +225,7 @@
                 let formData = new FormData(this);
                 let id = "{{ $order->id }}"; // Corrected variable for order ID
                 let cash = formData.get('cash');
-                let transferProof = formData.get('transfer_proof');
+                let transferProof = formData.get('img');
 
                 // If cash or transferProof is empty, set to null
                 if (!cash) {
@@ -249,16 +248,16 @@
                     data: formData,
                     contentType: false,
                     processData: false,
-
                     success: function(result) {
-                            alert('Order processed successfully!');
-                            $('#processModal-{{ $order->id }}').modal('hide'); // Tutup modal proses
-                            displayInvoice(result.invoice); // Tampilkan modal invoice dengan data invoice yang baru
-                        },
+                        alert('Order processed successfully!');
+                        $('#processModal-{{ $order->id }}').modal('hide');
+                        displayInvoice(result.invoice);
+                    },
                     error: function(xhr) {
                         console.log(xhr.responseText);
                     }
                 });
+
             });
         @endforeach
 

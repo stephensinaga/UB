@@ -25,6 +25,17 @@
     <link href="{{ asset('assets/vendor/quill/quill.bubble.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendor/remixicon/remixicon.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendor/simple-datatables/style.css') }}" rel="stylesheet">
+
+    <style>
+        #checkoutSection {
+            max-width: 100%;
+        }
+
+        .card {
+            width: 100%;
+        }
+
+    </style>
 </head>
 
 <div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-labelledby="customerModalLabel"
@@ -32,23 +43,23 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="customerModalLabel">Customer Name and Table Number</h5>
+                <h5 class="modal-title" id="customerModalLabel">Nomor Meja dan Nama Anda</h5>
             </div>
             <div class="modal-body">
                 <form id="SessionForm" action="javascript:void(0)">
                     @csrf
                     @method('POST')
                     <div class="form-group">
-                        <label for="tableNumber">Table Number</label>
+                        <label for="tableNumber">Nomor Meja</label>
                         <input type="text" class="form-control" id="tableNumber" name="table_number"
-                            placeholder="Table Number" required>
+                            placeholder="Nomor Meja" required>
                     </div>
                     <div class="form-group">
-                        <label for="customerName">Customer Name</label>
+                        <label for="customerName">Nama Anda</label>
                         <input type="text" class="form-control" id="customerName" name="customer_name"
-                            placeholder="Customer Name" required>
+                            placeholder="Nama Anda" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="submit" class="btn btn-primary">Lanjutkan</button>
                 </form>
             </div>
         </div>
@@ -58,118 +69,130 @@
 <div class="container card-body" id="mainContent" style="display: none;">
     <section class="section dashboard container-fluid">
         <div class="row mt-3">
-            <!-- Product section -->
-            <div class="col-lg-7">
-                <!-- Adjust to col-lg-7 -->
-                <form id="filterForm" method="GET" action="{{ route('CashierView') }}" class="mb-4">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <input type="text" id="searchInput" class="form-control" placeholder="Product / Code" value="{{ request('search') }}">
+            <!-- Product and Checkout section in one div -->
+            <div class="col-lg-12 col-md-12">
+                <!-- Adjusted to full-width on mobile -->
+                <div class="container-md">
+                    <!-- Title Pesanan Produk -->
+                    <h3 class="mb-2">Pesanan Produk</h3>
+
+                    <!-- Filter Form -->
+                    <form id="filterForm" method="GET" action="{{ route('CashierView') }}" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-4 col-sm-12 mb-3">
+                                <input type="text" id="searchInput" class="form-control" placeholder="Cari Produk Anda... " value="{{ request('search') }}">
+                            </div>
+                            <div class="col-md-4 col-sm-12 mb-1">
+                                <select name="category" id="categorySelect" class="form-control">
+                                    <option value="" disabled selected>Cari Berdasarkan Kategori... </option>
+                                    <option value="">All</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->category }}" {{ request('category') == $category->category ? 'selected' : '' }}>
+                                            {{ $category->category }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <select name="category" id="categorySelect" class="form-control">
-                                <option value="">Categories</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->category }}" {{ request('category') == $category->category ? 'selected' : '' }}>
-                                        {{ $category->category }}
-                                    </option>
-                                @endforeach
-                            </select>
+                    </form>
+
+                    <!-- Tombol Go to Checkout -->
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <button id="scrollToCheckout" class="btn btn-warning btn-block w-100">Checkout</button>
                         </div>
                     </div>
-                </form>
 
-                <div class="row" id="productList" style="max-height: 650px; overflow-y: auto;">
-                    @foreach ($product as $item)
-                    <div class="col-xxl-4 col-md-6 mb-4 product-item" data-name="{{ $item->product_name }}" data-code="{{ $item->product_code }}" data-category="{{ strtolower($item->product_category) }}">
-                        <div class="card">
-                            <div class="card-body">
-                                <h4 class="card-title text-truncate" style="font-size: 1rem;">{{ $item->product_name }}</h4>
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
-                                        @if ($item->product_images)
-                                        <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" class="img-fluid" style="object-fit: cover;">
-                                        @else
-                                        <i class="bi bi-cart" style="font-size: 3rem;"></i>
-                                        @endif
-                                    </div>
-                                    <div class="ps-3 flex-grow-1">
-                                        <h6 class="product-price" style="font-size: 1rem;">Rp{{ number_format($item->product_price) }}</h6>
-                                        <p class="text-muted small product-code">{{ $item->product_code }}</p>
-                                        <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
-                                            @csrf
-                                            <button type="submit" class="btn btn-primary mt-2">Order</button>
-                                        </form>
+                    <!-- Product list -->
+                    <div class="row" id="productList" style="max-height: 650px; overflow-y: auto;">
+                        @foreach ($product as $item)
+                        <div class="col-xxl-4 col-md-6 mb-4 product-item" data-name="{{ $item->product_name }}" data-code="{{ $item->product_code }}" data-category="{{ strtolower($item->product_category) }}">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title text-truncate" style="font-size: 1rem;">{{ $item->product_name }}</h4>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                                            @if ($item->product_images)
+                                            <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" class="img-fluid" style="object-fit: cover;">
+                                            @else
+                                            <i class="bi bi-cart" style="font-size: 3rem;"></i>
+                                            @endif
+                                        </div>
+                                        <div class="ps-3 flex-grow-1">
+                                            <h6 class="product-price" style="font-size: 1rem;">Rp{{ number_format($item->product_price) }}</h6>
+                                            <p class="text-muted small product-code">{{ $item->product_code }}</p>
+                                            <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-primary mt-2">Order</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        @endforeach
                     </div>
-                    @endforeach
-                </div>
-            </div>
 
-            <!-- Checkout section -->
-            <div class="col-lg-5">
-                <!-- Reduced from col-lg-5 to make room -->
-                <div class="container-md mt-5">
-                    <div class="card shadow-sm p-2">
-                        <h2 class="mb-4">Checkout List</h2>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover table-striped">
-                                <thead class="thead-dark">
-                                    <tr>
-                                        <th>Product Name</th>
-                                        <th>Product Price</th>
-                                        <th>Product Qty</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($order as $item)
+                    <!-- Checkout section -->
+                    <div class="container-md" id="checkoutSection">
+                        <div class="card shadow-sm p-2">
+                            <h2 class="mb-4">Daftar Checkout</h2>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover table-striped">
+                                    <thead class="thead-light">
                                         <tr>
-                                            <td>{{ $item->product_name }}</td>
-                                            <td>{{ number_format($item->product_price) }}</td>
-                                            <td>
-                                                {{ $item->qty }}
-                                                <form method="post" action="{{ route('MinOrderItemGuest', $item->id) }}" class="d-inline-block">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <button type="submit" class="btn btn-sm btn-danger">-</button>
-                                                </form>
-                                                <form method="post" action="{{ route('AddOrderItemGuest', $item->id) }}" class="d-inline-block">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <button type="submit" class="btn btn-sm btn-success">+</button>
-                                                </form>
-                                            </td>
-                                            <td>{{ number_format($item->qty * $item->product_price) }}</td>
+                                            <th>Nama Product</th>
+                                            <th>Harga Product</th>
+                                            <th>Kuantitas Product</th>
+                                            <th>Total</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot>
-                                    <tr class="font-weight-bold">
-                                        <td colspan="3" class="text-right">Total Price:</td>
-                                        <td>{{ number_format($order->sum(fn($item) => $item->qty * $item->product_price)) }}
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-
-                        <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
-                            @csrf
-                            <div class="text-right">
-                                <button type="submit" class="btn btn-primary mt-3" name="checkout_type"
-                                    value="checkout">Checkout</button>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($order as $item)
+                                            <tr>
+                                                <td>{{ $item->product_name }}</td>
+                                                <td>{{ number_format($item->product_price) }}</td>
+                                                <td>
+                                                    {{ $item->qty }}
+                                                    <form method="post" action="{{ route('MinOrderItemGuest', $item->id) }}" class="d-inline-block">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <button type="submit" class="btn btn-sm btn-danger">-</button>
+                                                    </form>
+                                                    <form method="post" action="{{ route('AddOrderItemGuest', $item->id) }}" class="d-inline-block">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <button type="submit" class="btn btn-sm btn-success">+</button>
+                                                    </form>
+                                                </td>
+                                                <td>{{ number_format($item->qty * $item->product_price) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="font-weight-bold">
+                                            <td colspan="3" class="text-right">Total Harga:</td>
+                                            <td>{{ number_format($order->sum(fn($item) => $item->qty * $item->product_price)) }}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
-                        </form>
+
+                            <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
+                                @csrf
+                                <div class="text-right">
+                                    <button type="submit" class="btn btn-primary mt-3 w-100" name="checkout_type" value="checkout">Checkout</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </section>
 </div>
+
 <!-- Vendor JS Files -->
 <script src="{{ asset('assets/vendor/apexcharts/apexcharts.min.js') }}"></script>
 <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
@@ -182,6 +205,7 @@
 
 <!-- Template Main JS File -->
 <script src="{{ asset('assets/js/main.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -292,8 +316,8 @@
 
         // Checkout Process
         $('#CheckOutTable').on('submit', function(event) {
-            event.preventDefault();
-            let formData = new FormData(this);
+    event.preventDefault();
+    let formData = new FormData(this);
 
             $.ajax({
                 url: "{{route('GuestCheckout')}}",
@@ -302,15 +326,38 @@
                 contentType: false,
                 processData: false,
                 success: function(result) {
-                    alert('Checkout berhasil!');
-                    location.reload();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Checkout berhasil!',
+                        showConfirmButton: false,
+                        timer: 5000,
+                        timerProgressBar: true,
+                        didOpen: () => {
+                            Swal.showLoading();
+                            let timerInterval = setInterval(() => {
+                                const timer = Swal.getHtmlContainer().querySelector('b');
+                                if (timer) {
+                                    timer.textContent = Swal.getTimerLeft();
+                                }
+                            }, 100);
+                        },
+                        willClose: () => {
+                            clearInterval(timerInterval);
+                        }
+                    });
+                        location.reload();
                 },
                 error: function(xhr) {
-                    console.log(xhr.responseText);
-                    alert('Pesanan gagal di Checkout');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Checkout Gagal',
+                        text: xhr.responseText,
+                        showConfirmButton: true
+                    });
                 }
             });
         });
+
 
         // Reducing item quantity
         $('tbody').on('submit', '.MinOrderItemGuest', function(event) {
@@ -396,4 +443,11 @@
                 }
             });
         }
+        document.getElementById('scrollToCheckout').addEventListener('click', function() {
+        setTimeout(function() {
+            document.getElementById('checkoutSection').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }, 200); // Delay added for smoother scrolling
+    });
 </script>
