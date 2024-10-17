@@ -27,19 +27,24 @@
             margin: 20px 0;
         }
 
-        .create-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+        .create-button,
+        .receipts-button {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
         }
 
         .table-container {
             position: relative;
         }
+
+        .button-container {
+            text-align: right;
+            margin-bottom: 10px;
+        }
     </style>
 
     <body>
-
         <div class="container mt-4">
             <!-- Filter and Table in a Card -->
             <div class="card">
@@ -91,12 +96,31 @@
                                             class="btn btn-secondary btn-sm form-control">Reset Filter</a>
                                     </div>
                                 </div>
+                                <!-- Download Report-->
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label>&nbsp;</label>
+                                        <a href="{{ route('ExportLaporanStock', request()->all()) }}"
+                                            class="btn btn-primary btn-sm form-control">Download Report</a>
+                                    </div>
+                                </div>
                             </div>
                         </form>
                     </div>
-                    <button type="button" class="btn btn-primary create-button" data-toggle="modal"
-                        data-target="#createMaterialModal">Create Material</button>
 
+                    <!-- Tombol Create dan Weekly Receipts -->
+                    <div class="button-container">
+                        <button type="button" class="btn btn-primary create-button" data-toggle="modal"
+                            data-target="#createMaterialModal">Create Material</button>
+                        <button type="button" class="btn btn-primary receipts-button" data-toggle="modal"
+                            data-target="#weeklyReceiptsModal">Weekly Receipts</button>
+                    </div>
+                    
+                    @if (session('success'))
+                        <div class="message">
+                            {{ session('success') }}
+                        </div>
+                    @endif
 
                     <!-- Table Section with Create Button -->
                     <div class="table-container">
@@ -107,7 +131,9 @@
                                     <th>Material</th>
                                     <th>Qty</th>
                                     <th>Unit</th>
-                                    <th>information</th>
+                                    <th>Price</th>
+                                    <th>Grand Total</th>
+                                    <th>Information</th>
                                     <th>Date</th>
                                     <th>Action</th>
                                 </tr>
@@ -119,7 +145,9 @@
                                         <td>{{ $material->material }}</td>
                                         <td>{{ $material->qty }}</td>
                                         <td>{{ $material->satuan }}</td>
-                                        <td>{{ $material->keterangan }}</td>
+                                        <td>{{ number_format($material->harga, 2, ',', '.') }}</td>
+                                        <td>{{ number_format($material->total, 2, ',', '.') }}</td>
+                                        <td>{{ $material->keterangan ?? '-' }}</td>
                                         <td>{{ $material->created_at }}</td>
                                         <td>
                                             <a href="{{ route('UpdateView', ['id' => $material->id]) }}"
@@ -145,7 +173,7 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            <form action="javascript:void(0)" id="CreateMaterial">
+                            <form action="javascript:void(0)" id="CreateMaterial" method="POST">
                                 @csrf
                                 @method('post')
                                 <div class="form-group">
@@ -161,8 +189,12 @@
                                     <input type="number" class="form-control" name="qty" placeholder="QTY">
                                 </div>
                                 <div class="form-group">
-                                    <label for="satuan">Satuan</label>
-                                    <input type="text" class="form-control" name="satuan" placeholder="Satuan">
+                                    <label for="unit">Unit</label>
+                                    <input type="text" class="form-control" name="satuan" placeholder="Unit">
+                                </div>
+                                <div class="form-group">
+                                    <label for="harga">Price</label>
+                                    <input type="number" class="form-control" name="harga" placeholder="Price">
                                 </div>
                                 <div class="form-group">
                                     <label for="keterangan">Keterangan</label>
@@ -170,6 +202,25 @@
                                 </div>
                                 <button type="submit" class="btn btn-primary">Create New</button>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal for Weekly Receipts -->
+            <div class="modal fade" id="weeklyReceiptsModal" tabindex="-1" role="dialog"
+                aria-labelledby="weeklyReceiptsModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="weeklyReceiptsModalLabel">Weekly Receipts</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Content or Form for Weekly Receipts -->
+                            <p>Weekly Receipts content goes here...</p>
                         </div>
                     </div>
                 </div>
@@ -199,16 +250,21 @@
                         data: formData,
                         contentType: false,
                         processData: false,
-                        success: function(result) {
-                            location.reload();
+                        success: function(response) {
+                            if (response.success) {
+                                $('#createMaterialModal').modal('hide');
+                                console.log(response);
+                                // location.reload();
+                            } else {
+                                alert('Error: ' + response.message);
+                            }
                         },
-                        error: function(xhr, status, error) {
-                            console.error(xhr.responseText); // Debugging error
+                        error: function(xhr) {
+                            alert('Error: ' + xhr.responseText);
                         }
                     });
                 });
             });
         </script>
-
     </body>
 @endsection

@@ -19,6 +19,8 @@ class CreateMaterialsTable extends Migration
             $table->text('material');
             $table->integer('qty');
             $table->text('satuan');
+            $table->bigInteger('harga');
+            $table->bigInteger('total');
             $table->text('keterangan')->nullable();
             
             $table->timestamps();

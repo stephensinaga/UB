@@ -18,14 +18,22 @@ class StockController extends Controller
 
     public function NewMaterial(Request $request)
     {
+        $qty = $request->qty;
+        $price = $request->harga;
+        $grandtotal = $qty * $price;
+
+        // Simpan data material
         $material = new Material();
         $material->id_material = $request->id_material;
         $material->material = $request->material;
-        $material->qty = $request->qty;
+        $material->qty = $qty;
         $material->satuan = $request->satuan;
+        $material->harga = $price;
+        $material->total = $grandtotal;
         $material->keterangan = $request->keterangan;
         $material->save();
-        return back();
+
+        return back()->with('success', 'Material created successfully.');
     }
 
     public function StorageView()
@@ -108,28 +116,30 @@ class StockController extends Controller
         // Buat Spreadsheet baru
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-    
+
         // Tanggal hari ini
         $today = Carbon::now()->format('d M Y');
-    
+
         // Judul laporan
         $title = 'Report Material Stock - ' . $today;
-    
+
         // Tambahkan header dengan tanggal hari ini
         $sheet->setCellValue('A1', $title);
         $sheet->mergeCells('A1:E1'); // Gabungkan sel untuk header, sesuaikan kolom hingga E
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    
+
         // Header kolom di Excel
         $sheet->setCellValue('A2', 'No');
         $sheet->setCellValue('B2', 'ID Material');
         $sheet->setCellValue('C2', 'Nama Material');
         $sheet->setCellValue('D2', 'Stock');
         $sheet->setCellValue('E2', 'Unit');
-        $sheet->setCellValue('F2', 'Information');
-        $sheet->setCellValue('G2', 'Created At');
-    
+        $sheet->setCellValue('F2', 'Price');
+        $sheet->setCellValue('G2', 'Grand Total');
+        $sheet->setCellValue('H2', 'Information');
+        $sheet->setCellValue('I2', 'Created At');
+
         // Mulai query untuk materials
         $materialsQuery = Material::query();
         if ($request->has('date')) {
@@ -138,58 +148,59 @@ class StockController extends Controller
         if ($request->has('start_date') && $request->has('end_date')) {
             $materialsQuery->whereBetween('created_at', [$request->start_date, $request->end_date]);
         }
-    
+
         // Ambil data sesuai filter
         $materials = $materialsQuery->orderBy('created_at', 'asc')->get();
-    
+
         // Inisialisasi variabel untuk grouping by date
         $currentDate = null;
         $row = 3; // Mulai dari baris ketiga setelah header
         $no = 1;  // Nomor urut
-    
+
         foreach ($materials as $material) {
             // Cek apakah tanggal berubah
             $materialDate = $material->created_at->format('d M Y');
             if ($currentDate !== $materialDate) {
                 // Jika tanggal berubah, tambahkan tanggal sebagai header
                 $sheet->setCellValue('A' . $row, 'Date: ' . $materialDate);
-                $sheet->mergeCells('A' . $row . ':E' . $row); // Gabungkan sel hingga E
+                $sheet->mergeCells('A' . $row . ':I' . $row); // Gabungkan sel hingga E
                 $sheet->getStyle('A' . $row)->getFont()->setBold(true);
                 $row++; // Increment baris setelah header tanggal
                 $currentDate = $materialDate;
             }
-    
+
             // Isi data material
             $sheet->setCellValue('A' . $row, $no);
             $sheet->setCellValue('B' . $row, $material->id_material);
             $sheet->setCellValue('C' . $row, $material->material);
             $sheet->setCellValue('D' . $row, $material->qty);
             $sheet->setCellValue('E' . $row, $material->satuan);
-            $sheet->setCellValue('F' . $row, $material->keterangan ?? '-');
-            $sheet->setCellValue('G' . $row, $material->created_at->format('d M Y H:i'));
-    
+            $sheet->setCellValue('F' . $row, $material->harga);
+            $sheet->setCellValue('G' . $row, $material->total);
+            $sheet->setCellValue('H' . $row, $material->keterangan ?? '-');
+            $sheet->setCellValue('I' . $row, $material->created_at->format('d M Y H:i'));
+
             // Styling untuk setiap baris data
-            $sheet->getStyle('A' . $row . ':G' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-            $sheet->getStyle('A' . $row . ':G' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    
+            $sheet->getStyle('A' . $row . ':I' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle('A' . $row . ':I' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
             $row++;
             $no++; // Increment nomor urut
         }
-    
+
         // Auto-size kolom
-        foreach (range('A', 'G') as $columnID) {
+        foreach (range('A', 'I') as $columnID) {
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
-    
+
         // Simpan Excel dengan nama file yang mengandung tanggal hari ini
         $fileName = 'Laporan_Stock_Material_' . Carbon::now()->format('d_m_Y') . '.xlsx';
         $filePath = storage_path('app/' . $fileName);
-    
+
         $writer = new Xlsx($spreadsheet);
         $writer->save($filePath);
-    
+
         // Kirim file ke browser untuk diunduh
         return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
     }
-    
 }
