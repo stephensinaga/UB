@@ -65,6 +65,7 @@
                         id="ProccessPendingOrder-{{ $order->id }}">
                         @method('put')
                         @csrf
+                        <input type="hidden" name="id" value="{{ $order->id }}">
                         <div class="mt-3 mb-3">
                             <label for="paymentType-{{ $order->id }}">Payment Type</label>
                             <select class="form-control" id="paymentType-{{ $order->id }}" name="payment_type">
@@ -219,29 +220,45 @@
 
             // Handle form submit via AJAX
             $('#ProccessPendingOrder-{{ $order->id }}').on('submit', function(event) {
-                event.preventDefault();
+    event.preventDefault();
 
-                // Get form data
-                let formData = new FormData(this);
-                let id = "{{ $order->id }}"; // Corrected variable for order ID
-                let cash = formData.get('cash');
-                let transferProof = formData.get('img');
+    // Get form data
+    let formData = new FormData(this);
+    let id = "{{ $order->id }}";
+    let cash = formData.get('cash');
 
-                // If cash or transferProof is empty, set to null
-                if (!cash) {
-                    cash = null;
-                }
-                if (!transferProof) {
-                    transferProof = null;
-                }
+    // If cash is empty, set to null
+    if (!cash) {
+        cash = null;
+    }
 
-                // Set the route dynamically
+    // Handle the transfer proof image
+    let transferProof = formData.get('img');
+
+    // If transferProof is valid, upload it first
+    if (transferProof) {
+        let imageFormData = new FormData();
+        imageFormData.append('img', transferProof);
+
+        // Upload the image
+        $.ajax({
+            url: "{{ route('uploadTransferProof') }}", // Ganti dengan route upload
+            type: 'POST',
+            data: imageFormData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                // Get the path of the uploaded image
+                let imagePath = response.path;
+
+                // Set the route dynamically for order processing
                 let url = "{{ route('ProcessPendingOrder', ['id' => 'ID_PLACEHOLDER', 'type' => 'TYPE_PLACEHOLDER', 'cash' => 'CASH_PLACEHOLDER', 'img' => 'IMG_PLACEHOLDER']) }}"
                     .replace('ID_PLACEHOLDER', id)
                     .replace('TYPE_PLACEHOLDER', formData.get('payment_type'))
                     .replace('CASH_PLACEHOLDER', cash)
-                    .replace('IMG_PLACEHOLDER', transferProof);
+                    .replace('IMG_PLACEHOLDER', imagePath); // Send the image path
 
+                // Now process the order with the uploaded image path
                 $.ajax({
                     url: url,
                     type: 'PUT',
@@ -257,8 +274,39 @@
                         console.log(xhr.responseText);
                     }
                 });
+            },
+            error: function(xhr) {
+                console.log(xhr.responseText);
+                alert('Failed to upload image.');
+            }
+        });
+    } else {
+        // Handle order processing without image
+        let url = "{{ route('ProcessPendingOrder', ['id' => 'ID_PLACEHOLDER', 'type' => 'TYPE_PLACEHOLDER', 'cash' => 'CASH_PLACEHOLDER', 'img' => 'IMG_PLACEHOLDER']) }}"
+            .replace('ID_PLACEHOLDER', id)
+            .replace('TYPE_PLACEHOLDER', formData.get('payment_type'))
+            .replace('CASH_PLACEHOLDER', cash)
+            .replace('IMG_PLACEHOLDER', 'null'); // Send null if no image
 
-            });
+        // Process the order
+        $.ajax({
+            url: url,
+            type: 'PUT',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(result) {
+                alert('Order processed successfully!');
+                $('#processModal-{{ $order->id }}').modal('hide');
+                displayInvoice(result.invoice);
+            },
+            error: function(xhr) {
+                console.log(xhr.responseText);
+            }
+        });
+    }
+});
+
         @endforeach
 
         $('#PrintInvoice').click(function() {

@@ -364,39 +364,57 @@ class CashierController extends Controller
         ], 200);
     }
 
-    public function ProcessPendingOrder($id, $payment_type, $cash = null, $img = null)
+    public function uploadTransferProof(Request $request)
     {
-        $data = MainOrder::findOrFail($id);
-        $cashier = Auth::user(); // Pastikan user login
+        if ($request->hasFile('img')) {
+                    // Ambil file
+        $transfer = $request->file('img');
+        // Buat nama unik untuk file
+        $transferImageName = time() . '_' . $transfer->getClientOriginalName();
+        // Simpan file ke storage
+        $transferImage = $transfer->storeAs('bukti_transfer', $transferImageName, 'public');
+        }else{
+            $transferImage = null;
+        }
+        // Mengembalikan path ke file yang telah disimpan
+        return response()->json(['path' => $transferImage], 200);
+    }
 
-        // Jika cashier tidak ditemukan (user tidak login)
+
+    public function ProcessPendingOrder($id, $payment_type, $cash = null, $imgPath = null, Request $request)
+    {
+        // Cari order berdasarkan ID
+        $data = MainOrder::findOrFail($id);
+        $cashier = Auth::user(); // Pastikan pengguna sudah login
+
         if (!$cashier) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Hitung kembalian jika pembayaran tunai
-        $cashGiven = (float)$cash;
-        $changes = (float)$cashGiven - (float)$data->grandtotal;
-
-        // Proses bukti transfer jika ada
-        $transferImage = null;
-        if ($img) {
-            $transfer = request()->file('img');
-            $transferImageName = time() . '_' . $transfer->getClientOriginalName();
-            $transferImage = $transfer->storeAs('bukti_transfer', $transferImageName, 'public');
+        // Set nilai default untuk cash dan changes
+        if ($payment_type === 'transfer') {
+            $cashGiven = null;
+            $changes = null;
         } else {
-            $transferImage = null;
+            // Hitung perubahan jika pembayaran adalah tunai
+            $cashGiven = $request->cash ?? $cash;
+            $changes = $cashGiven - $data->grandtotal;
         }
 
+        // Jika ada gambar yang diupload, simpan path-nya
+        if ($imgPath) {
+            $data->transfer_image = $imgPath; // Simpan path gambar ke dalam kolom transfer_image
+        } else {
+            $data->transfer_image = null; // Jika tidak ada gambar, set ke null
+        }
 
         // Update data order
         $data->cashier = $cashier->name;
         $data->payment = $payment_type;
         $data->cash = $cashGiven;
         $data->changes = $changes;
-        $data->transfer_image = $transferImage;
         $data->status = 'checkout';
-        $data->save();
+        $data->save(); // Simpan perubahan ke database
 
         return response()->json([
             'message' => 'Order processed successfully',
