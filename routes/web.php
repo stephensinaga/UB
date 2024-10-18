@@ -6,6 +6,7 @@ use App\Http\Controllers\CashierController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ExportLaporan;
 use App\Http\Controllers\StockController;
+use App\Models\Stock;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['guest'])->group(function () {
@@ -47,12 +48,24 @@ Route::middleware(['auth'])->group(function () {
         Route::get('laporan/penjualan/all', [AdminController::class, 'laporanPenjualan'])->name('LaporanPenjualan');
         Route::get('export/laporan/penjualan/filtered', [ExportController::class, 'ExportLaporanPenjualan'])->name('ExportLaporanPenjualan');
 
+        // WeeklyReceipts
+        Route::prefix('weekly/receipts')->group(function () {
+            Route::get('', [StockController::class, 'WeeklyReceiptsView'])->name('WeeklyReceiptsView');
+            Route::post('add/pending/material', [StockController::class, 'InReceipts'])->name('InReceipts');
+            Route::put('update/data/{id}', [StockController::class, 'UpdatePending'])->name('UpdatePending');
+            Route::delete('delete/pending/{id}', [StockController::class, 'Deletepending'])->name('DeletePending');
+        });
+
+        // Create new
+        Route::post("create/new/material", [StockController::class, "CreateMaterial"])->name("CreateMaterial");
+        Route::post("create/new/unit", [StockController::class, "CreateUnit"])->name("CreateUnit");
+
         // Stock
         Route::prefix('stock')->group(function () {
             Route::get('material', [StockController::class, 'StorageView'])->name('StorageView');
-            Route::post('new/material', [StockController::class, 'NewMaterial'])->name('NewMaterial');
+            Route::post('add/new', [StockController::class, 'AddStock'])->name('AddStock');
             Route::get('material/update/view/{id}', [StockController::class, 'UpdateView'])->name('UpdateView');
-            Route::post('update/material/stock', [StockController::class, 'UpdateProcess'])->name('UpdateProcess');
+            Route::post('update/material/stock/{id}', [StockController::class, 'UpdateProcess'])->name('UpdateProcess');
             Route::get('filter/material', [StockController::class, 'FilterMaterial'])->name('FilterMaterial');
             Route::get('export/report/material', [StockController::class, 'ExportLaporanStock'])->name('ExportLaporanStock');
         });

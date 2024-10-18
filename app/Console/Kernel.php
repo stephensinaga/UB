@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \App\Console\Commands\Clear::class,
+        \App\Console\Commands\Migrate::class,
     ];
 
     protected function schedule(Schedule $schedule)

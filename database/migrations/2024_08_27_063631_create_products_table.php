@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('product_code');
             $table->string('product_images')->nullable();
             $table->text('product_category');
-            $table->bigInteger('product_price');
+            $table->decimal('product_price',10,2);
             $table->timestamps();
         });
     }

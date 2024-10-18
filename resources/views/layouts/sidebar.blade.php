@@ -1,5 +1,5 @@
 @php
-    $user = Auth::user();
+$user = Auth::user();
 @endphp
 
 <aside id="sidebar" class="sidebar">
@@ -13,44 +13,51 @@
             </a>
         </li>
         @if ($user->role === 'admin')
-            <li class="nav-item">
-                <a class="nav-link " href="{{ route('CreateProductView') }}">
-                    <i class="bi bi-box-seam"></i>
-                    <span>Product</span>
-                </a>
-            </li>
+        <li class="nav-item">
+            <a class="nav-link " href="{{ route('CreateProductView') }}">
+                <i class="bi bi-box-seam"></i>
+                <span>Product</span>
+            </a>
+        </li>
 
-            <li class="nav-item">
-                <a class="nav-link " href="{{ route('StorageView') }}">
-                    <i class="bi bi-boxes"></i>
-                    <span>Material Stock</span>
-                </a>
-            </li>
+        <li class="nav-item">
+            <a class="nav-link " href="{{ route('StorageView') }}">
+                <i class="bi bi-boxes"></i>
+                <span>Material Stock</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link " href="{{ route('WeeklyReceiptsView') }}">
+                <i class="bi bi-receipt"></i>
+                <span>Weekly Receipts</span>
+            </a>
+        </li>
         @endif
 
         @if ($user->role === 'cashier')
-            <li class="nav-item">
-                <a class="nav-link " href="{{ route('CashierView') }}">
-                    <i class="bi bi-minecart"></i>
-                    <span>Cashier</span>
-                </a>
-            </li>
+        <li class="nav-item">
+            <a class="nav-link " href="{{ route('CashierView') }}">
+                <i class="bi bi-minecart"></i>
+                <span>Cashier</span>
+            </a>
+        </li>
 
-            <li class="nav-item">
-                <a class="nav-link " href="{{ route('HistoryPenjualanCashier') }}">
-                    <i class="bi bi-calendar-check"></i>
-                    <span>Sales History</span>
-                </a>
-            </li>
+        <li class="nav-item">
+            <a class="nav-link " href="{{ route('HistoryPenjualanCashier') }}">
+                <i class="bi bi-calendar-check"></i>
+                <span>Sales History</span>
+            </a>
+        </li>
         @endif
 
         @if ($user->role === 'admin')
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('LaporanPenjualan') }}">
-                    <i class="bi bi-journal-text"></i>
-                    <span>Sales Report</span>
-                </a>
-            </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('LaporanPenjualan') }}">
+                <i class="bi bi-journal-text"></i>
+                <span>Sales Report</span>
+            </a>
+        </li>
         @endif
 
         <li class="nav-item">
