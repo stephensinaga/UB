@@ -54,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('add/pending/material', [StockController::class, 'InReceipts'])->name('InReceipts');
             Route::put('update/data/{id}', [StockController::class, 'UpdatePending'])->name('UpdatePending');
             Route::delete('delete/pending/{id}', [StockController::class, 'Deletepending'])->name('DeletePending');
+            Route::post('save/material/into/stock', [StockController::class, 'SaveWeeklyReceipts'])->name('SaveWeeklyReceipts');
         });
 
         // Create new

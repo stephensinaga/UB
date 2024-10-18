@@ -291,7 +291,7 @@ class StockController extends Controller
 
     public function UpdatePending(Request $request, $id)
     {
-        $item = WeeklyReceipts::where('id', $id)->where('type', 'stock')->where('status', 'pending')->first();
+        $item = WeeklyReceipts::where('id', $id)->where('type', 'stock')->where('status', 'pending')->where('admin', Auth::user()->name)->first();
 
         if (!$item) {
             return response()->json(['success' => false, 'message' => 'Item not found']);
@@ -309,11 +309,55 @@ class StockController extends Controller
         return response()->json(['success' => true, 'message' => 'Data updated successfully.']);
     }
 
-    public function DeletePending($id){
+    public function DeletePending($id)
+    {
         $item = WeeklyReceipts::where('id', $id)->where('type', 'stock')->where('status', 'pending')->first();
         $item->delete();
         return response()->json(['success' => true, 'message' => 'Delete data successfully.']);
     }
 
+    public function UpdateStockFromReceipts($item)
+    {
+        $material = new Stock();
+        $material->id_material = $item->id_material;
+        $material->qty = $item->qty;
+        $material->id_unit = $item->id_unit;
+        $material->price = $item->price;
+        $material->total = $item->total;
+        $material->information = $item->information;
+        $material->save();
+    }
 
+    public function SaveWeeklyReceipts($id)
+    {
+        // Ambil semua items yang sesuai dengan filter
+        $items = WeeklyReceipts::where('id', $id)
+            ->where('type', 'stock')
+            ->where('status', 'pending')
+            ->where('admin', Auth::user()->name)
+            ->get();  // Menggunakan get() untuk mengembalikan koleksi
+
+        // Validasi jika tidak ada item yang ditemukan
+        if ($items->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No pending receipts found for this user.'
+            ]);
+        }
+
+        // Loop melalui semua items yang ditemukan
+        foreach ($items as $item) {
+            // Update status item menjadi 'purchased'
+            $item->status = 'purchased';
+            $item->save();
+
+            // Panggil fungsi untuk update stock berdasarkan item
+            $this->UpdateStockFromReceipts($item);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Receipts have been saved and stock updated successfully.'
+        ]);
+    }
 }

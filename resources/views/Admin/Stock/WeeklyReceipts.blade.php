@@ -2,10 +2,10 @@
 @section('contents')
     <!-- Card for Weekly Receipts Form -->
     <div class="card">
-        <div class="card-header mb-6">
+        <div class="card-header mb-3">
             <h4 class="text-center">Weekly Receipts</h4>
         </div>
-        <div class="card-body">
+        <div class="card-body mt-3">
             <!-- Form for Weekly Receipts -->
             <form action="javascript:void(0)" method="POST" id="InReceipts">
                 @csrf
@@ -58,7 +58,7 @@
         </div>
     </div>
 
-    <!-- Table for Previous Weekly Receipts -->
+    <!-- Table for Weekly Receipts -->
     <div class="card mt-4">
         <div class="card-header">
             <h4 class="text-center">
@@ -105,6 +105,20 @@
                     @endforeach
                 </tbody>
             </table>
+
+            <!-- Button Save -->
+            <div class="text-right mt-3">
+                <form action="javascript:void(0)" method="post" id="SaveWeeklyReceipts">
+                    @csrf
+                    @method('POST')
+                    @foreach ($pending as $item)
+                        <input type="hidden" name="ids[]" value="{{ $item->id }}">
+                    @endforeach
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Save Receipts
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -167,14 +181,12 @@
             });
 
             // Remove Rp. format on form submit
-            $('#InReceipts').on('submit', function() {
-                let priceInput = $('#price');
-                priceInput.val(priceInput.val().replace(/[^0-9]/g, '')); // Only digits
-            });
-
             $('#InReceipts').on('submit', function(event) {
                 event.preventDefault();
-                var formData = new FormData(this);
+                let priceInput = $('#price');
+                priceInput.val(priceInput.val().replace(/[^0-9]/g, '')); // Only digits
+
+                var formData = new FormData(this); // Use FormData for file uploads
 
                 $.ajax({
                     url: "{{ route('InReceipts') }}",
@@ -225,9 +237,6 @@
                             url: "{{ route('DeletePending', ['id' => 'id']) }}".replace(
                                 'id', id), // Replace id in URL
                             type: 'DELETE',
-                            data: {
-                                _token: "{{ csrf_token() }}"
-                            },
                             success: function(response) {
                                 if (response.success) {
                                     Swal.fire({
@@ -235,8 +244,7 @@
                                         title: 'Deleted!',
                                         text: response.message
                                     }).then(() => {
-                                        location
-                                    .reload(); // Reload page on success
+                                        location.reload();
                                     });
                                 } else {
                                     Swal.fire({
@@ -253,6 +261,40 @@
                                     text: xhr.responseText
                                 });
                             }
+                        });
+                    }
+                });
+            });
+
+            $('#SaveWeeklyReceipts').on('submit', function(event) {
+                event.preventDefault();
+
+                $.ajax({
+                    url: "{{ route('SaveWeeklyReceipts') }}",
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: response.message
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: xhr.responseText
                         });
                     }
                 });
