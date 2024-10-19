@@ -23,7 +23,6 @@
         <div class="col-3">{{ $order->customer }}</div>
         <div class="col-3">Rp{{ number_format($order->grandtotal, 0, ',', '.') }}</div>
         <div class="col-2">
-            <!-- Button to open modal with unique ID -->
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
                 data-bs-target="#processModal-{{ $order->id }}">
                 Process
@@ -31,7 +30,6 @@
         </div>
     </div>
 
-    <!-- Modal with unique ID -->
     <div class="modal fade" id="processModal-{{ $order->id }}" tabindex="-1"
         aria-labelledby="processModalLabel-{{ $order->id }}" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -42,7 +40,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Order Details -->
                     <p><strong>Invoice No:</strong> {{ $order->no_invoice }}</p>
                     <p><strong>Table No:</strong> {{ $order->no_meja }}</p>
                     <p><strong>Customer:</strong> {{ $order->customer }}</p>
@@ -60,7 +57,6 @@
 
                     <hr>
 
-                    <!-- Form with unique ID for each order -->
                     <form method="POST" action="javascript:void(0)" enctype="multipart/form-data"
                         id="ProccessPendingOrder-{{ $order->id }}">
                         @method('put')
@@ -75,21 +71,20 @@
                             </select>
                         </div>
 
-                        <div class="cash-section mt-3 mb-3" id="cashSection-{{ $order->id }}">
-                            <label for="cashGiven-{{ $order->id }}">Amount Paid</label>
-                            <input type="number" class="form-control" id="cashGiven-{{ $order->id }}" name="cash"
-                                placeholder="Enter payment amount">
+                        <div id="cashSection-{{ $order->id }}">
+                            <div class="mb-3">
+                                <label for="cash" class="form-label">Cash Amount</label>
+                                <input type="number" class="form-control" name="cash" id="cash" required>
+                            </div>
                         </div>
 
-                        <div class="transfer-section mt-3 mb-3" id="transferSection-{{ $order->id }}">
-                            <label for="transferProof-{{ $order->id }}">Upload Transfer Proof</label>
-                            <input type="file" class="form-control-file" id="transferProof-{{ $order->id }}" name="img">
+                        <div id="transferSection-{{ $order->id }}">
+                            <div class="mb-3">
+                                <input type="file" class="form-control" name="img" id="img-{{ $order->id }}" accept="image/*" required>
+                            </div>
                         </div>
 
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Process Order</button>
-                        </div>
+                        <button type="submit" class="btn btn-success">Process Order</button>
                     </form>
                 </div>
             </div>
@@ -163,177 +158,192 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Setup CSRF token for AJAX requests
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
-        function displayInvoice(invoice) {
-    $('#invoiceId').text(invoice.id);
-    $('#invoiceDate').text(new Date(invoice.created_at).toLocaleDateString());
-    $('#cashierName').text(invoice.cashier);
-    $('#customerNames').text(invoice.customer);
-    $('#grandTotal').text('Rp ' + parseFloat(invoice.grandtotal).toLocaleString('id-ID', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }));
-    $('#payments').text(invoice.payment.charAt(0).toUpperCase() + invoice.payment.slice(1));
-
-    // Tampilkan nomor meja
-    $('#tableNumber').text(invoice.no_meja);
-
-    if (invoice.payment === 'cash') {
-        $('#cashRow').show();
-        $('#changesRow').show();
-        $('#cashs').text('Rp ' + parseFloat(invoice.cash).toLocaleString('id-ID', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }));
-        $('#changes').text('Rp ' + parseFloat(invoice.changes).toLocaleString('id-ID', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }));
-        $('#transferProofRow').hide();
-    } else if (invoice.payment === 'transfer') {
-        $('#cashRow').hide();
-        $('#changesRow').hide();
-        $('#transferProofRow').show();
-        $('#transferProofs').html('<a href="/storage/' + invoice.transfer_image +
-            '" target="_blank">Lihat Bukti Transfer</a>');
-    }
-    $('#PrintInvoice').attr('data-id', invoice.id);
-    $('#invoiceModal').modal('show');
-    $('.modal-backdrop').remove();
-}
-
+        // Iterasi setiap order untuk menyiapkan event listener
         @foreach($mainOrders as $order)
+            // Sembunyikan elemen cash dan transfer saat pertama kali dimuat
             $('#cashSection-{{ $order->id }}').hide();
             $('#transferSection-{{ $order->id }}').hide();
 
-            // Toggle between cash and transfer sections
+            // Toggle antara cash dan transfer section berdasarkan pilihan payment type
             $('#paymentType-{{ $order->id }}').on('change', function() {
                 const paymentType = $(this).val();
-                $('#cashSection-{{ $order->id }}').toggle(paymentType === 'cash');
-                $('#transferSection-{{ $order->id }}').toggle(paymentType === 'transfer');
+
+                if (paymentType === 'cash') {
+                    // Jika cash, tampilkan input Amount Paid dan wajibkan pengisian
+                    $('#cashSection-{{ $order->id }}').show();
+                    $('#cashSection-{{ $order->id }} input').prop('required', true);
+
+                    // Sembunyikan dan bersihkan input untuk transfer
+                    $('#transferSection-{{ $order->id }}').hide();
+                    $('#transferSection-{{ $order->id }} input').prop('required', false);
+                    $('#transferSection-{{ $order->id }} input').val(''); // Bersihkan input file jika ada
+                } else if (paymentType === 'transfer') {
+                    // Jika transfer, tampilkan input file untuk bukti transfer dan wajibkan pengisian
+                    $('#transferSection-{{ $order->id }}').show();
+                    $('#transferSection-{{ $order->id }} input').prop('required', true);
+
+                    // Sembunyikan input Amount Paid dan tidak wajib diisi
+                    $('#cashSection-{{ $order->id }}').hide();
+                    $('#cashSection-{{ $order->id }} input').prop('required', false);
+                    $('#cashSection-{{ $order->id }} input').val(''); // Bersihkan input Amount Paid
+                } else {
+                    // Jika tidak ada yang dipilih, sembunyikan semuanya dan nonaktifkan required
+                    $('#cashSection-{{ $order->id }}').hide();
+                    $('#transferSection-{{ $order->id }}').hide();
+                    $('#cashSection-{{ $order->id }} input').prop('required', false);
+                    $('#transferSection-{{ $order->id }} input').prop('required', false);
+                }
             });
 
-            // Handle form submit via AJAX
+            // Handle form submit untuk memproses order
             $('#ProccessPendingOrder-{{ $order->id }}').on('submit', function(event) {
-    event.preventDefault();
+                event.preventDefault();
 
-    // Get form data
-    let formData = new FormData(this);
-    let id = "{{ $order->id }}";
-    let cash = formData.get('cash');
+                // Ambil data form
+                let formData = new FormData(this);
+                let id = "{{ $order->id }}";
+                let cash = formData.get('cash') || null; // Set cash menjadi null jika tidak ada input
+                let paymentType = $('#paymentType-' + id).val();
 
-    // If cash is empty, set to null
-    if (!cash) {
-        cash = null;
-    }
+                // Validasi sebelum submit
+                if (paymentType === 'cash' && cash == null) {
+                    alert('Please enter the cash amount.');
+                    return false;
+                }
 
-    // Handle the transfer proof image
-    let transferProof = formData.get('img');
+                if (paymentType === 'transfer' && formData.get('img') === null) {
+                    alert('Please upload the transfer proof.');
+                    return false;
+                }
 
-    // If transferProof is valid, upload it first
-    if (transferProof) {
-        let imageFormData = new FormData();
-        imageFormData.append('img', transferProof);
+                if (paymentType === 'transfer') {
+                    let transferProof = formData.get('img');
 
-        // Upload the image
-        $.ajax({
-            url: "{{ route('uploadTransferProof') }}", // Ganti dengan route upload
-            type: 'POST',
-            data: imageFormData,
-            contentType: false,
-            processData: false,
-            success: function(response) {
-                // Get the path of the uploaded image
-                let imagePath = response.path;
+                    // Upload gambar
+                    if (transferProof) {
+                        let imageFormData = new FormData();
+                        imageFormData.append('img', transferProof);
 
-                // Set the route dynamically for order processing
-                let url = "{{ route('ProcessPendingOrder', ['id' => 'ID_PLACEHOLDER', 'type' => 'TYPE_PLACEHOLDER', 'cash' => 'CASH_PLACEHOLDER', 'img' => 'IMG_PLACEHOLDER']) }}"
-                    .replace('ID_PLACEHOLDER', id)
-                    .replace('TYPE_PLACEHOLDER', formData.get('payment_type'))
-                    .replace('CASH_PLACEHOLDER', cash)
-                    .replace('IMG_PLACEHOLDER', imagePath); // Send the image path
-
-                // Now process the order with the uploaded image path
-                $.ajax({
-                    url: url,
-                    type: 'PUT',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    success: function(result) {
-                        alert('Order processed successfully!');
-                        $('#processModal-{{ $order->id }}').modal('hide');
-                        displayInvoice(result.invoice);
-                    },
-                    error: function(xhr) {
-                        console.log(xhr.responseText);
+                        $.ajax({
+                            url: "{{ route('uploadTransferProof') }}",
+                            type: 'POST',
+                            data: imageFormData,
+                            contentType: false,
+                            processData: false,
+                            success: function(response) {
+                                let imagePath = response.path; // Ambil path dari hasil upload
+                                processOrder(id, cash, imagePath); // Pastikan path gambar diteruskan
+                            },
+                            error: function(xhr) {
+                                console.log(xhr.responseText);
+                                alert('Failed to upload image.');
+                            }
+                        });
                     }
-                });
-            },
-            error: function(xhr) {
-                console.log(xhr.responseText);
-                alert('Failed to upload image.');
-            }
-        });
-    } else {
-        // Handle order processing without image
-        let url = "{{ route('ProcessPendingOrder', ['id' => 'ID_PLACEHOLDER', 'type' => 'TYPE_PLACEHOLDER', 'cash' => 'CASH_PLACEHOLDER', 'img' => 'IMG_PLACEHOLDER']) }}"
-            .replace('ID_PLACEHOLDER', id)
-            .replace('TYPE_PLACEHOLDER', formData.get('payment_type'))
-            .replace('CASH_PLACEHOLDER', cash)
-            .replace('IMG_PLACEHOLDER', 'null'); // Send null if no image
-
-        // Process the order
-        $.ajax({
-            url: url,
-            type: 'PUT',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function(result) {
-                alert('Order processed successfully!');
-                $('#processModal-{{ $order->id }}').modal('hide');
-                displayInvoice(result.invoice);
-            },
-            error: function(xhr) {
-                console.log(xhr.responseText);
-            }
-        });
-    }
-});
-
+                }
+            });
         @endforeach
 
-        $('#PrintInvoice').click(function() {
-    // Ambil ID invoice dari elemen modal
-    var invoiceId = $('#invoiceId').text();
+        function processOrder(id, cash, imgPath) {
+            let paymentType = $('#paymentType-' + id).val(); // Ambil jenis pembayaran
 
-    // Lakukan permintaan AJAX untuk mencetak invoice
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: '/cashier/print/invoice/' + invoiceId, // Sesuaikan dengan route Anda
-        type: 'GET',
-        success: function(response) {
-            alert(response.success);
-            location.reload();
-        },
-        error: function(xhr) {
-            console.log(xhr);
-            var errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'An error occurred.';
-            alert('Error printing invoice: ' + errorMessage);
+            // Pastikan cash dan imgPath tidak null jika tidak diisi
+            cash = cash !== null ? cash : 'null';
+            imgPath = imgPath !== null ? imgPath : 'null';
+
+            // Bangun URL dengan parameter yang benar
+            let url = "{{ route('ProcessPendingOrder', ['id' => ':id', 'type' => ':type', 'cash' => ':cash', 'img' => ':img']) }}"
+                .replace(':id', id)
+                .replace(':type', paymentType)
+                .replace(':cash', cash)
+                .replace(':img', imgPath);
+
+            $.ajax({
+                url: url,
+                type: 'PUT',
+                success: function(result) {
+                    alert('Order processed successfully!');
+                    $('#processModal-' + id).modal('hide');
+                    displayInvoice(result.invoice); // Menampilkan invoice setelah order diproses
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    alert('Failed to process order.');
+                }
+            });
         }
-    });
-});
+
+        console.log('ID:', id);
+        console.log('Payment Type:', paymentType);
+        console.log('Cash:', cash);
+        console.log('Image Path:', imgPath);
 
 
 
+        // Fungsi untuk menampilkan invoice
+        function displayInvoice(invoice) {
+            $('#invoiceId').text(invoice.id);
+            $('#invoiceDate').text(new Date(invoice.created_at).toLocaleDateString());
+            $('#cashierName').text(invoice.cashier);
+            $('#customerNames').text(invoice.customer);
+            $('#grandTotal').text('Rp ' + parseFloat(invoice.grandtotal).toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
+            $('#payments').text(invoice.payment.charAt(0).toUpperCase() + invoice.payment.slice(1));
+            $('#tableNumber').text(invoice.no_meja);
+
+            if (invoice.payment === 'cash') {
+                $('#cashRow').show();
+                $('#changesRow').show();
+                $('#cashs').text('Rp ' + parseFloat(invoice.cash).toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
+                $('#changes').text('Rp ' + parseFloat(invoice.changes).toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
+                $('#transferProofRow').hide();
+            } else if (invoice.payment === 'transfer') {
+                $('#cashRow').hide();
+                $('#changesRow').hide();
+                $('#transferProofRow').show();
+                $('#transferProofs').html('<a href="/storage/' + invoice.transfer_image +
+                    '" target="_blank">Lihat Bukti Transfer</a>');
+            }
+            $('#PrintInvoice').attr('data-id', invoice.id);
+            $('#invoiceModal').modal('show');
+        }
+
+        // AJAX untuk cetak invoice
+        $('#PrintInvoice').click(function() {
+            let invoiceId = $('#invoiceId').text();
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/cashier/print/invoice/' + invoiceId,
+                type: 'GET',
+                success: function(response) {
+                    alert(response.success);
+                    location.reload();
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    alert('Error printing invoice: ' + (xhr.responseJSON?.error || 'An error occurred.'));
+                }
+            });
+        });
     });
 </script>
+
+
 @endsection

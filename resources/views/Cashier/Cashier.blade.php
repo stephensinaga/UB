@@ -231,12 +231,12 @@
                     $('#manualEntry').toggle($(this).val() === 'other');
                 });
 
-                    // Show cash input or transfer section based on payment type selection
-                    $('#paymentType').on('change', function() {
-                        const paymentType = $(this).val();
-                        $('.cash-section').toggle(paymentType === 'cash');
-                        $('.transfer-section').toggle(paymentType === 'transfer');
-                    });
+                // Show cash input or transfer section based on payment type selection
+                $('#paymentType').on('change', function() {
+                    const paymentType = $(this).val();
+                    $('.cash-section').toggle(paymentType === 'cash');
+                    $('.transfer-section').toggle(paymentType === 'transfer');
+                });
 
             $('#btnKembali').on('click', function() {
                 $('#invoiceModal').modal('hide'); // Menutup modal ketika tombol "Kembali" ditekan

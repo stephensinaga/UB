@@ -153,12 +153,12 @@
                                                 <td>{{ $item->product_name }}</td>
                                                 <td>{{ number_format($item->product_price) }}</td>
                                                 <td>
-                                                    {{ $item->qty }}
                                                     <form method="post" action="{{ route('MinOrderItemGuest', $item->id) }}" class="d-inline-block">
                                                         @csrf
                                                         @method('PUT')
                                                         <button type="submit" class="btn btn-sm btn-danger">-</button>
                                                     </form>
+                                                    {{ $item->qty }}
                                                     <form method="post" action="{{ route('AddOrderItemGuest', $item->id) }}" class="d-inline-block">
                                                         @csrf
                                                         @method('PUT')
@@ -211,6 +211,24 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
+
+        // Function to save the current scroll position
+        function saveScrollPosition() {
+            sessionStorage.setItem('scrollPos', $(window).scrollTop());
+        }
+
+        // Function to restore the scroll position
+        function restoreScrollPosition() {
+            const scrollPos = sessionStorage.getItem('scrollPos');
+            if (scrollPos) {
+                $(window).scrollTop(scrollPos);
+                sessionStorage.removeItem('scrollPos'); // Bersihkan setelah digunakan
+            }
+        }
+
+        // Panggil ini ketika halaman dimuat
+        restoreScrollPosition();
+
         // Cek apakah session untuk nomor meja dan customer sudah ada
         var tableNumberSession = '{{ $tableNumber ?? '' }}';
         var customerNameSession = '{{ $customerName ?? '' }}';
@@ -250,6 +268,7 @@
                             $('#mainContent').show();
 
                             // Reload halaman atau lakukan apapun yang diinginkan setelah sukses
+                            saveScrollPosition(); // Simpan posisi scroll sebelum reload
                             location.reload();
                         } else {
                             alert('Gagal menyimpan data.');
@@ -291,7 +310,7 @@
 
         calculateTotalPrice();
 
-        // Ordering a product
+        // Memesan produk
         $('.OrderProduct').on('submit', function(event) {
             event.preventDefault();
             let id = $(this).data('id');
@@ -305,6 +324,7 @@
                 },
                 data: $(this).serialize(),
                 success: function(result) {
+                    saveScrollPosition(); // Simpan posisi scroll sebelum reload
                     location.reload();
                 },
                 error: function(xhr) {
@@ -314,10 +334,10 @@
             });
         });
 
-        // Checkout Process
+        // Proses Checkout
         $('#CheckOutTable').on('submit', function(event) {
-    event.preventDefault();
-    let formData = new FormData(this);
+            event.preventDefault();
+            let formData = new FormData(this);
 
             $.ajax({
                 url: "{{route('GuestCheckout')}}",
@@ -334,18 +354,10 @@
                         timerProgressBar: true,
                         didOpen: () => {
                             Swal.showLoading();
-                            let timerInterval = setInterval(() => {
-                                const timer = Swal.getHtmlContainer().querySelector('b');
-                                if (timer) {
-                                    timer.textContent = Swal.getTimerLeft();
-                                }
-                            }, 100);
-                        },
-                        willClose: () => {
-                            clearInterval(timerInterval);
                         }
                     });
-                        location.reload();
+                    saveScrollPosition(); // Simpan posisi scroll sebelum reload
+                    location.reload();
                 },
                 error: function(xhr) {
                     Swal.fire({
@@ -358,8 +370,7 @@
             });
         });
 
-
-        // Reducing item quantity
+        // Mengurangi jumlah item
         $('tbody').on('submit', '.MinOrderItemGuest', function(event) {
             event.preventDefault();
             let id = $(this).data('id');
@@ -373,6 +384,7 @@
                 },
                 success: function(result) {
                     alert('Pengurangan Berhasil');
+                    saveScrollPosition(); // Simpan posisi scroll sebelum reload
                     location.reload();
                 },
                 error: function(xhr) {
@@ -381,40 +393,39 @@
                 }
             });
         });
-    });
 
-    // Adding item quantity
-    $('tbody').on('submit', '.AddOrderItemGuest', function(event) {
-        event.preventDefault();
-        let id = $(this).data('id');
-        let url = `/guest/add/pending/order/${id}`; // URL untuk menambah kuantitas
+        // Menambah jumlah item
+        $('tbody').on('submit', '.AddOrderItemGuest', function(event) {
+            event.preventDefault();
+            let id = $(this).data('id');
+            let url = `/guest/add/pending/order/${id}`; // URL untuk menambah kuantitas
 
-        $.ajax({
-            url: url,
-            type: 'PUT',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(result) {
-                alert('Penambahan Berhasil');
-                location.reload();
-            },
-            error: function(xhr) {
-                console.log(xhr.responseText);
-                alert('Penambahan Gagal 🤦‍♂️');
-            }
-        });
-    });
-
-    $('#searchInput, #categorySelect').on('input change', function() {
-                filterProducts(); // Panggil fungsi filter saat ada perubahan input
+            $.ajax({
+                url: url,
+                type: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(result) {
+                    alert('Penambahan Berhasil');
+                    saveScrollPosition(); // Simpan posisi scroll sebelum reload
+                    location.reload();
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    alert('Penambahan Gagal 🤦‍♂️');
+                }
             });
+        });
 
-            function filterProducts() {
+        // Filter produk berdasarkan input pencarian dan kategori
+        $('#searchInput, #categorySelect').on('input change', function() {
+            filterProducts(); // Panggil fungsi filter saat ada perubahan input
+        });
+
+        function filterProducts() {
             var search = $('#searchInput').val().toLowerCase();
             var category = $('#categorySelect').val();
-
-            console.log('Filter by category:', category); // Tambahkan ini untuk melihat nilai kategori
 
             // Loop semua produk dan hide/show berdasarkan filter
             $('.product-item').each(function() {
@@ -422,9 +433,6 @@
                 var productCode = $(this).data('code').toLowerCase();
                 var productCategory = $(this).data('category');
 
-                console.log('Product category:', productCategory); // Tambahkan ini untuk melihat kategori produk
-
-                // Cek apakah produk sesuai dengan search dan category
                 var isVisible = true;
 
                 if (search && !productName.includes(search) && !productCode.includes(search)) {
@@ -443,11 +451,15 @@
                 }
             });
         }
+
+        // Scroll ke bagian checkout ketika tombol "scrollToCheckout" ditekan
         document.getElementById('scrollToCheckout').addEventListener('click', function() {
-        setTimeout(function() {
-            document.getElementById('checkoutSection').scrollIntoView({
-                behavior: 'smooth'
-            });
-        }, 200); // Delay added for smoother scrolling
+            setTimeout(function() {
+                document.getElementById('checkoutSection').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }, 200); // Delay ditambahkan untuk memperhalus scroll
+        });
     });
 </script>
+
