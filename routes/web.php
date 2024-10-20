@@ -55,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('update/data/{id}', [StockController::class, 'UpdatePending'])->name('UpdatePending');
             Route::delete('delete/pending/{id}', [StockController::class, 'Deletepending'])->name('DeletePending');
             Route::post('save/material/into/stock', [StockController::class, 'SaveWeeklyReceipts'])->name('SaveWeeklyReceipts');
+            Route::get('export/report', [StockController::class, 'ExportWeeklyReceipts'])->name('ExportWeeklyReceipts');
         });
 
         // Create new
