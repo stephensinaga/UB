@@ -62,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('list/pending/order', [CashierController::class, 'ListOrder'])->name('ListOrder');
         Route::put('process/pending/order/{id}/{type}/{cash}/{img}', [CashierController::class, 'ProcessPendingOrder'])->name('ProcessPendingOrder');
+        Route::put('save/pending/order/{id}', [CashierController::class, 'SavePendingOrder'])->name('SavePendingOrder');
         Route::post('upload-transfer-proof', [CashierController::class, 'uploadTransferProof'])->name('uploadTransferProof');
 
 
