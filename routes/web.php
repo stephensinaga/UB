@@ -62,8 +62,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('list/pending/order', [CashierController::class, 'ListOrder'])->name('ListOrder');
         Route::put('process/pending/order/{id}/{type}/{cash}/{img}', [CashierController::class, 'ProcessPendingOrder'])->name('ProcessPendingOrder');
-        Route::post('/upload-transfer-proof', [CashierController::class, 'uploadTransferProof'])->name('uploadTransferProof');
-        // Route::put('process/pending/order/{id}/{type}', [CashierController::class, 'ProcessPendingOrder'])->name('ProcessPendingOrder');
+        Route::post('upload-transfer-proof', [CashierController::class, 'uploadTransferProof'])->name('uploadTransferProof');
+
 
         // Laporan Penjualan
         Route::get('history/penjualan', [AdminController::class, 'HistoryPenjualanCashier'])->name('HistoryPenjualanCashier');

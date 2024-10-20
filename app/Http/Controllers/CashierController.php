@@ -331,7 +331,6 @@ class CashierController extends Controller
         $today = now()->format('Y-m-d');
         // Cari pesanan terakhir pada hari ini
         $lastOrder = MainOrder::whereDate('created_at', $today)->orderBy('id', 'desc')->first();
-        // Jika belum ada pesanan hari ini, nomor invoice dimulai dari 1, jika ada, increment dari nomor terakhir
         $newInvoiceNumber = $lastOrder ? ($lastOrder->no_invoice + 1) : 1;
 
         $Checkout = new MainOrder();
@@ -376,15 +375,28 @@ class CashierController extends Controller
             $transfer = $request->file('img');
             $transferImageName = time() . '_' . $transfer->getClientOriginalName();
             $transferImage = $transfer->storeAs('bukti_transfer', $transferImageName, 'public');
-        } else {
-            $transferImage = null;
-        }
 
-        return response()->json(['path' => $transferImage], 200);
+            // Simpan path ke session
+            session(['transfer_image' => $transferImage]);
+
+            // Kembalikan path gambar transfer
+            return response()->json(['path' => $transferImage], 200);
+        } else {
+            return response()->json(['error' => 'No image uploaded'], 400);
+        }
     }
 
-    public function ProcessPendingOrder($id, $payment_type, $cash = null, $imgPath = null, Request $request)
+    public function ProcessPendingOrder($id, $payment_type, Request $request)
     {
+        if (!is_numeric($id) || $id <= 0) {
+            return response()->json(['error' => 'Invalid order ID'], 400);
+        }
+
+        // Validasi payment_type
+        if (!in_array($payment_type, ['cash', 'transfer'])) {
+            return response()->json(['error' => 'Invalid payment type'], 400);
+        }
+
         // Validasi input cash jika ada
         $request->validate([
             'cash' => 'nullable|numeric|min:0', // Validasi cash
@@ -402,13 +414,16 @@ class CashierController extends Controller
         $cashGiven = null;
         $changes = null;
 
+        // Ambil path dari session jika ada
+        $imgPath = session('transfer_image');
+
         if ($payment_type === 'transfer') {
             // Jika transfer, tidak perlu ada cash dan changes
             $cashGiven = null;
             $changes = null;
         } else {
             // Jika cash, hitung perubahan
-            $cashGiven = $request->cash ?? $cash;
+            $cashGiven = $request->cash ?? null;
             $changes = $cashGiven - $order->grandtotal;
 
             if ($changes < 0) {
@@ -424,6 +439,7 @@ class CashierController extends Controller
 
         // Simpan transfer image jika ada
         if ($imgPath && $payment_type === 'transfer') {
+            Log::info('Path yang akan disimpan: ' . $imgPath); // Cek nilai
             $order->transfer_image = $imgPath;  // Simpan path transfer image
         }
 
@@ -435,6 +451,7 @@ class CashierController extends Controller
             'invoice' => $order,
         ], 200);
     }
+
 
     public function printInvoice($id)
     {

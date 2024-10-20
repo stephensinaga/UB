@@ -214,17 +214,24 @@
 
         // Function to save the current scroll position
         function saveScrollPosition() {
-            sessionStorage.setItem('scrollPos', $(window).scrollTop());
+            sessionStorage.setItem('scrollPos', $(window).scrollTop()); // Simpan posisi scroll halaman
         }
-
         // Function to restore the scroll position
         function restoreScrollPosition() {
             const scrollPos = sessionStorage.getItem('scrollPos');
             if (scrollPos) {
-                $(window).scrollTop(scrollPos);
-                sessionStorage.removeItem('scrollPos'); // Bersihkan setelah digunakan
+                $('html, body').scrollTop(scrollPos); // Kembali ke posisi yang disimpan
+                sessionStorage.removeItem('scrollPos'); // Hapus posisi setelah digunakan
             }
         }
+
+        function scrollToCheckout() {
+            $('html, body').animate({
+                scrollTop: $('#scrollToCheckout').offset().top
+            }, 'smooth'); // Scroll ke tombol "Checkout"
+        }
+
+        scrollToCheckout();
 
         // Panggil ini ketika halaman dimuat
         restoreScrollPosition();
@@ -286,6 +293,9 @@
             keyboard: false
         });
 
+        restoreScrollPosition();
+
+        // Fungsi hitung ulang total harga
         function calculateTotalPrice() {
             let totalPrice = 0;
 
@@ -369,10 +379,7 @@
                 }
             });
         });
-
-        // Mengurangi jumlah item
-        $('tbody').on('submit', '.MinOrderItemGuest', function(event) {
-            event.preventDefault();
+        $('tbody').on('click', '.MinOrderItemGuest', function() {
             let id = $(this).data('id');
             let url = `/guest/min/pending/order/${id}`;
 
@@ -383,22 +390,31 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(result) {
-                    alert('Pengurangan Berhasil');
-                    saveScrollPosition(); // Simpan posisi scroll sebelum reload
-                    location.reload();
+                    // Perbarui kuantitas di tabel tanpa reload
+                    let row = $('button[data-id="' + id + '"]').closest('tr');
+                    let qtyCell = row.find('td:nth-child(3)');
+                    let qty = parseInt(qtyCell.text().trim()) - 1;
+
+                    if (qty <= 0) {
+                        row.remove(); // Hapus baris jika qty = 0
+                    } else {
+                        qtyCell.text(qty); // Update kuantitas
+                    }
+                    calculateTotalPrice(); // Hitung ulang total harga
+
+                    location.reload(); // Reload halaman
                 },
                 error: function(xhr) {
-                    console.log(xhr.responseText);
-                    alert('Pengurangan Gagal 🤦‍♂️');
+                    console.error(xhr.responseText);
+                    alert('Gagal mengurangi item.');
                 }
             });
         });
 
-        // Menambah jumlah item
-        $('tbody').on('submit', '.AddOrderItemGuest', function(event) {
-            event.preventDefault();
+        // Menambah jumlah item menggunakan AJAX
+        $('tbody').on('click', '.AddOrderItemGuest', function() {
             let id = $(this).data('id');
-            let url = `/guest/add/pending/order/${id}`; // URL untuk menambah kuantitas
+            let url = `/guest/add/pending/order/${id}`;
 
             $.ajax({
                 url: url,
@@ -407,13 +423,18 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(result) {
-                    alert('Penambahan Berhasil');
-                    saveScrollPosition(); // Simpan posisi scroll sebelum reload
-                    location.reload();
+                    // Perbarui kuantitas di tabel tanpa reload
+                    let row = $('button[data-id="' + id + '"]').closest('tr');
+                    let qtyCell = row.find('td:nth-child(3)');
+                    let qty = parseInt(qtyCell.text().trim()) + 1;
+                    qtyCell.text(qty); // Update kuantitas
+                    calculateTotalPrice(); // Hitung ulang total harga
+
+                    location.reload(); // Reload halaman
                 },
                 error: function(xhr) {
-                    console.log(xhr.responseText);
-                    alert('Penambahan Gagal 🤦‍♂️');
+                    console.error(xhr.responseText);
+                    alert('Gagal menambah item.');
                 }
             });
         });
@@ -453,13 +474,14 @@
         }
 
         // Scroll ke bagian checkout ketika tombol "scrollToCheckout" ditekan
-        document.getElementById('scrollToCheckout').addEventListener('click', function() {
+        $('#scrollToCheckout').on('click', function() {
             setTimeout(function() {
-                document.getElementById('checkoutSection').scrollIntoView({
-                    behavior: 'smooth'
-                });
-            }, 200); // Delay ditambahkan untuk memperhalus scroll
+                $('html, body').animate({
+                    scrollTop: $('#checkoutSection').offset().top
+                }, 'smooth'); // Scroll ke bagian checkout dengan efek halus
+            }, 200); // Delay untuk memperhalus scroll
         });
+
     });
 </script>
 

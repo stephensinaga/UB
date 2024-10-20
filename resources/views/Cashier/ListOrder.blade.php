@@ -223,6 +223,7 @@
                     return false;
                 }
 
+                // Jika pembayaran adalah transfer, upload bukti terlebih dahulu
                 if (paymentType === 'transfer') {
                     let transferProof = formData.get('img');
 
@@ -238,8 +239,8 @@
                             contentType: false,
                             processData: false,
                             success: function(response) {
-                                let imagePath = response.path; // Ambil path dari hasil upload
-                                processOrder(id, cash, imagePath); // Pastikan path gambar diteruskan
+                                let imagePath = response.path;
+                                processOrder(id, cash, imagePath); // Panggil proses order setelah upload gambar berhasil
                             },
                             error: function(xhr) {
                                 console.log(xhr.responseText);
@@ -247,6 +248,8 @@
                             }
                         });
                     }
+                } else {
+                    processOrder(id, cash, null); // Jika tidak ada gambar, langsung proses order
                 }
             });
         @endforeach
@@ -259,11 +262,7 @@
             imgPath = imgPath !== null ? imgPath : 'null';
 
             // Bangun URL dengan parameter yang benar
-            let url = "{{ route('ProcessPendingOrder', ['id' => ':id', 'type' => ':type', 'cash' => ':cash', 'img' => ':img']) }}"
-                .replace(':id', id)
-                .replace(':type', paymentType)
-                .replace(':cash', cash)
-                .replace(':img', imgPath);
+            let url = "{{ route('ProcessPendingOrder', ['id' => ':id', 'type' => ':type', 'cash' => ':cash', 'img' => ':img']) }}".replace(':id', id).replace(':type', paymentType).replace(':cash', cash).replace(':img', imgPath);
 
             $.ajax({
                 url: url,
@@ -272,6 +271,11 @@
                     alert('Order processed successfully!');
                     $('#processModal-' + id).modal('hide');
                     displayInvoice(result.invoice); // Menampilkan invoice setelah order diproses
+
+                    // Reset input fields after processing
+                    $('#ProccessPendingOrder-' + id)[0].reset(); // Reset the form
+                    $('#cashSection-' + id).hide(); // Hide cash section
+                    $('#transferSection-' + id).hide(); // Hide transfer section
                 },
                 error: function(xhr) {
                     console.log(xhr.responseText);
@@ -279,13 +283,6 @@
                 }
             });
         }
-
-        console.log('ID:', id);
-        console.log('Payment Type:', paymentType);
-        console.log('Cash:', cash);
-        console.log('Image Path:', imgPath);
-
-
 
         // Fungsi untuk menampilkan invoice
         function displayInvoice(invoice) {
@@ -316,34 +313,34 @@
                 $('#cashRow').hide();
                 $('#changesRow').hide();
                 $('#transferProofRow').show();
-                $('#transferProofs').html('<a href="/storage/' + invoice.transfer_image +
-                    '" target="_blank">Lihat Bukti Transfer</a>');
+                $('#transferProofs').html('<a href="/storage/' + invoice.transfer_image + '" target="_blank">Lihat Bukti Transfer</a>');
             }
             $('#PrintInvoice').attr('data-id', invoice.id);
             $('#invoiceModal').modal('show');
         }
 
-        // AJAX untuk cetak invoice
         $('#PrintInvoice').click(function() {
-            let invoiceId = $('#invoiceId').text();
+            // Ambil ID invoice dari elemen modal
+            var invoiceId = $('#invoiceId').text();
+
+            // Lakukan permintaan AJAX untuk mencetak invoice
             $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '/cashier/print/invoice/' + invoiceId,
+                url: '/cashier/print/invoice/' + invoiceId, // Sesuaikan dengan route Anda
                 type: 'GET',
                 success: function(response) {
                     alert(response.success);
                     location.reload();
                 },
                 error: function(xhr) {
-                    console.log(xhr.responseText);
-                    alert('Error printing invoice: ' + (xhr.responseJSON?.error || 'An error occurred.'));
+                    console.log(xhr);
+                    var errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'An error occurred.';
+                    alert('Error printing invoice: ' + errorMessage);
                 }
             });
         });
     });
 </script>
-
-
 @endsection
