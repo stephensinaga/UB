@@ -390,87 +390,61 @@ class StockController extends Controller
 
     public function ExportWeeklyReceipts(Request $request)
     {
-        // Buat Spreadsheet baru
+        // Create a new Spreadsheet
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Tanggal hari ini
+        // Get today's date
         $today = Carbon::now()->format('d/m/y');
 
-        // Tentukan judul laporan berdasarkan filter yang dipilih
-        if ($request->has('date')) {
-            $date = $request->date;
-            $title = 'Weekly Receipts Report - ' . $date;
-        } elseif ($request->has('month')) {
+        // Determine report title based on selected filter
+        if ($request->filled('date')) {
+            $date = Carbon::createFromFormat('d/m/Y', $request->date);
+            $title = 'Weekly Receipts Report - ' . $date->format('d/m/Y');
+        } elseif ($request->filled('month')) {
             $month = $request->month;
             $title = 'Weekly Receipts Report - ' . $month;
         } else {
-            // Jika tidak ada filter, gunakan tanggal hari ini sebagai judul
+            // If no filter, use today's date as title
             $title = 'Weekly Receipts Report - ' . $today;
         }
 
-        // Tambahkan header judul laporan
+        // Set report title in the spreadsheet
         $sheet->setCellValue('A1', $title);
-        $sheet->mergeCells('A1:L1'); // Gabungkan sel untuk header, sesuaikan kolom hingga L
+        $sheet->mergeCells('A1:L1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // Cek apakah filter berdasarkan bulan atau tanggal
-        $isFilteredByMonth = $request->has('month');
-        $isFilteredByDate = $request->has('date');
+        // Set header columns
+        $headers = ['No', 'Admin', 'Type', 'Material ID', 'Qty', 'Unit ID', 'Price', 'Total', 'Information', 'Purchase Date', 'Status', 'Created At'];
+        $sheet->fromArray($headers, NULL, 'A2');
 
-        // Header kolom di Excel
-        $sheet->setCellValue('A2', 'No');
-        $sheet->setCellValue('B2', 'Admin');
-        $sheet->setCellValue('C2', 'Type');
-        $sheet->setCellValue('D2', 'Material ID');
-        $sheet->setCellValue('E2', 'Qty');
-        $sheet->setCellValue('F2', 'Unit ID');
-        $sheet->setCellValue('G2', 'Price');
-        $sheet->setCellValue('H2', 'Total');
-        $sheet->setCellValue('I2', 'Information');
-
-        // Tambahkan kolom Purchase Date jika filter bukan berdasarkan tanggal
-        if (!$isFilteredByDate) {
-            $sheet->setCellValue('J2', 'Purchase Date');
-        }
-
-        $sheet->setCellValue('K2', 'Status');
-        $sheet->setCellValue('L2', 'Created At');
-
-        // Mulai query untuk receipts
+        // Initialize the receipt query
         $receiptQuery = WeeklyReceipts::query();
 
-        // Filter berdasarkan date atau month
-        if ($request->has('date')) {
-            $receiptQuery->whereDate('created_at', $request->date);
-        } elseif ($request->has('month')) {
-            $receiptQuery->whereMonth('purchase_date', $request->month);
+        // Filter by date or month
+        if ($request->filled('date')) {
+            $receiptQuery->whereDate('created_at', $date);
+        } elseif ($request->filled('month')) {
+            $receiptQuery->whereMonth('purchase_date', $month);
         }
 
-        // Ambil data yang sudah difilter
+        // Fetch filtered data
         $receipts = $receiptQuery->orderBy('purchase_date', 'asc')->get();
 
-        // Inisialisasi variabel untuk grouping by purchase_date
-        $currentDate = null;
-        $row = 3; // Mulai dari baris ketiga setelah header
-        $no = 1;  // Nomor urut
-        $totalExpenses = 0; // Total pengeluaran
+        if ($receipts->isEmpty()) {
+            return response()->json(['message' => 'No receipts found for the selected filters.'], 404);
+        }
+
+        // Fill in receipt data
+        $row = 3; // Starting from the third row
+        $no = 1;  // Serial number
+        $totalExpenses = 0; // Total expenses
 
         foreach ($receipts as $receipt) {
-            // Pastikan purchase_date diubah menjadi objek Carbon sebelum di-format
             $receiptDate = Carbon::parse($receipt->purchase_date)->format('d/m/y');
 
-            // Jika filter berdasarkan bulan, tambahkan header tanggal pembelian
-            if ($isFilteredByMonth && $currentDate !== $receiptDate) {
-                $sheet->setCellValue('A' . $row, 'Purchase Date: ' . $receiptDate);
-                $sheet->mergeCells('A' . $row . ':L' . $row); // Gabungkan sel hingga L
-                $sheet->getStyle('A' . $row)->getFont()->setBold(true);
-                $row++; // Increment baris setelah header tanggal
-                $currentDate = $receiptDate;
-            }
-
-            // Isi data receipt
+            // Fill receipt data
             $sheet->setCellValue('A' . $row, $no);
             $sheet->setCellValue('B' . $row, $receipt->admin);
             $sheet->setCellValue('C' . $row, $receipt->type);
@@ -480,56 +454,63 @@ class StockController extends Controller
             $sheet->setCellValue('G' . $row, $receipt->price);
             $sheet->setCellValue('H' . $row, $receipt->total);
             $sheet->setCellValue('I' . $row, $receipt->information ?? '-');
-
-            // Tampilkan kolom purchase_date jika filter bukan berdasarkan tanggal
-            if (!$isFilteredByDate) {
-                $sheet->setCellValue('J' . $row, $receiptDate);
-            }
-
+            $sheet->setCellValue('J' . $row, $receiptDate);
             $sheet->setCellValue('K' . $row, $receipt->status);
             $sheet->setCellValue('L' . $row, Carbon::parse($receipt->created_at)->format('d/m/y'));
 
-            // Styling untuk setiap baris data
-            $sheet->getStyle('A' . $row . ':L' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-            $sheet->getStyle('A' . $row . ':L' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            // Apply styling
+            $sheet->getStyle('A' . $row . ':L' . $row)->applyFromArray([
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => Border::BORDER_THIN,
+                    ],
+                ],
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                ],
+            ]);
             $sheet->getStyle('G' . $row)->getNumberFormat()->setFormatCode('Rp #,##0.00');
             $sheet->getStyle('H' . $row)->getNumberFormat()->setFormatCode('Rp #,##0.00');
 
-            // Tambahkan ke total pengeluaran
+            // Add to total expenses
             $totalExpenses += $receipt->total;
 
             $row++;
-            $no++; // Increment nomor urut
+            $no++;
         }
 
-        // Tambahkan total pengeluaran di bagian akhir
+        // Add total expenses at the end
         $sheet->setCellValue('G' . $row, 'Total Pengeluaran');
         $sheet->mergeCells('F' . $row . ':G' . $row);
         $sheet->getStyle('F' . $row . ':G' . $row)->getFont()->setBold(true);
         $sheet->setCellValue('H' . $row, $totalExpenses);
         $sheet->getStyle('H' . $row)->getNumberFormat()->setFormatCode('Rp #,##0.00');
 
-        // Auto-size kolom
+        // Auto-size columns
         foreach (range('A', 'L') as $columnID) {
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
 
-        // Tentukan nama file berdasarkan filter
-        if ($isFilteredByDate) {
-            $fileName = 'Weekly_Receipts_Report_' . $request->date . '.xlsx';
-        } elseif ($isFilteredByMonth) {
-            $fileName = 'Weekly_Receipts_Report_Month_' . $request->month . '.xlsx';
-        } else {
-            $fileName = 'Weekly_Receipts_Report_All_' . Carbon::now()->format('d_m_Y') . '.xlsx';
-        }
+        // Set file name based on filters
+        $fileName = $this->generateFileName($request);
 
+        // Save Excel file
         $filePath = storage_path('app/' . $fileName);
+        (new Xlsx($spreadsheet))->save($filePath);
 
-        // Simpan Excel dengan nama file yang mengandung filter
-        $writer = new Xlsx($spreadsheet);
-        $writer->save($filePath);
-
-        // Kirim file ke browser untuk diunduh
+        // Return the file for download
         return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
+    }
+
+    // Helper function to generate file name
+    private function generateFileName(Request $request)
+    {
+        if ($request->filled('date')) {
+            return 'Weekly_Receipts_Report_' . $request->date . '.xlsx';
+        } elseif ($request->filled('month')) {
+            return 'Weekly_Receipts_Report_Month_' . $request->month . '.xlsx';
+        } else {
+            return 'Weekly_Receipts_Report_All_' . Carbon::now()->format('d_m_Y') . '.xlsx';
+        }
     }
 }
