@@ -114,27 +114,32 @@
                     <div class="card-body">
                         <h3 class="mb-2">Pesanan Produk</h3>
 
-                        <!-- Filter Form -->
-                        <form id="filterForm" method="GET" action="{{ route('CashierView') }}" class="mb-4">
-                            <div class="row">
-                                <div class="col-md-4 col-sm-12 mb-3">
-                                    <input type="text" id="searchInput" class="form-control"
-                                        placeholder="Cari Produk Anda... " value="{{ request('search') }}">
+
+                        <form id="filterForm" method="GET" action="{{ route('CashierView') }}" class="mb-3">
+                            <div class="row align-items-center">
+                                <div class="col-md-4 col-sm-12 mb-2">
+                                    <input type="text" id="searchInput" class="form-control" placeholder="Cari Produk Anda..." value="{{ request('search') }}">
                                 </div>
-                                <div class="col-md-4 col-sm-12 mb-1">
+                                <div class="col-md-4 col-sm-12 mb-2">
                                     <select name="category" id="categorySelect" class="form-control">
-                                        <option value="" disabled selected>Cari Berdasarkan Kategori... </option>
+                                        <option value="" disabled selected>Cari Berdasarkan Kategori...</option>
                                         <option value="">All</option>
                                         @foreach ($categories as $category)
-                                        <option value="{{ $category->category }}" {{ request('category')==$category->
-                                            category ? 'selected' : '' }}>
+                                        <option value="{{ $category->category }}" {{ request('category') == $category->category ? 'selected' : '' }}>
                                             {{ $category->category }}
                                         </option>
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="col-md-4 col-sm-12 text-md-right text-center">
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#checkoutModal">
+                                        Lanjut Pesan
+                                    </button>
+                                </div>
                             </div>
                         </form>
+
+
 
                         <!-- Product list -->
                         <div class="row" id="productList" style="max-height: 650px; overflow-y: auto;">
@@ -162,7 +167,7 @@
                                                 <p class="text-muted small product-code">{{ $item->product_code }}</p>
                                                 <form method="post" class="OrderProduct" data-id="{{ $item->id }}">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-primary mt-2">Order</button>
+                                                    <button type="submit" class="btn btn-primary mt-2">Pilih</button>
                                                 </form>
                                             </div>
                                         </div>
@@ -175,63 +180,59 @@
                 </div>
             </div>
 
-            <!-- Checkout section in a card on the right -->
-            <div class="col-lg-4 col-md-12">
-                <div class="card shadow-sm p-2" id="checkoutSection">
-                    <h2 class="mb-4">Daftar Checkout</h2>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-striped">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Nama Product</th>
-                                    <th>Harga Product</th>
-                                    <th>Kuantitas Product</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($order as $item)
-                                <tr>
-                                    <td>{{ $item->product_name }}</td>
-                                    <td>{{ number_format($item->product_price) }}</td>
-                                    <td>
-                                        {{ $item->qty }}
-                                        <form method="post" action="{{ route('MinOrderItemGuest', $item->id) }}"
-                                            class="d-inline-block">
-                                            @csrf
-                                            @method('PUT')
-                                            <button type="submit" class="btn btn-sm btn-danger">-</button>
-                                        </form>
-                                        <form method="post" action="{{ route('AddOrderItemGuest', $item->id) }}"
-                                            class="d-inline-block">
-                                            @csrf
-                                            @method('PUT')
-                                            <button type="submit" class="btn btn-sm btn-success">+</button>
-                                        </form>
-                                    </td>
-                                    <td>{{ number_format($item->qty * $item->product_price) }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                            <tfoot>
-                                <tr class="font-weight-bold">
-                                    <td colspan="3" class="text-right">Total Harga:</td>
-                                    <td>{{ number_format($order->sum(fn($item) => $item->qty * $item->product_price)) }}
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
+        <div class="modal fade" id="checkoutModal" tabindex="-1" role="dialog" aria-labelledby="checkoutModalLabel"
+            aria-hidden="true" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="checkoutModalLabel">Daftar Checkout</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-
-                    <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
-                        @csrf
-                        <div class="text-right">
-                            <button type="submit" class="btn btn-primary mt-3 w-100" name="checkout_type"
-                                value="checkout">Checkout</button>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-striped">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Nama Produk</th>
+                                        <th>Harga Produk</th>
+                                        <th>Kuantitas Produk</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($order as $item)
+                                    <tr data-product-id="{{ $item->id }}">
+                                        <td>{{ $item->product_name }}</td>
+                                        <td>{{ number_format($item->product_price) }}</td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm qty-input" data-product-id="{{ $item->id }}" value="{{ $item->qty }}" min="1">
+                                        </td>
+                                        <td>{{ number_format($item->qty * $item->product_price) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr class="font-weight-bold">
+                                        <td colspan="3" class="text-right">Total Harga:</td>
+                                        <td>{{ number_format($order->sum(fn($item) => $item->qty * $item->product_price)) }}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
-                    </form>
+                        <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
+                            @csrf
+                            <div class="text-right">
+                                <button type="submit" class="btn btn-primary mt-3 w-100" name="checkout_type"
+                                    value="checkout">Checkout</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
+        </div>
         </div>
     </section>
 </div>
@@ -323,6 +324,12 @@
                 if (!isNaN(price) && !isNaN(qty)) {
                     let totalItemPrice = price * qty;
                     totalPrice += totalItemPrice;
+
+                    // Update total per produk
+                    $(this).find('td:nth-child(4)').text(totalItemPrice.toLocaleString('id-ID', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }));
                 }
             });
 
@@ -331,6 +338,30 @@
                 maximumFractionDigits: 2
             }));
         }
+
+        $('tbody').on('change', '.qty-input', function(event) {
+        let productId = $(this).data('product-id');
+        let newQty = $(this).val();
+
+        console.log('Qty updated:', newQty); // Tambahkan ini untuk memeriksa nilai qty
+
+        $.ajax({
+            url: `/guest/update/qty/order/${productId}`,
+            type: 'PUT',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: { qty: newQty },
+            success: function(result) {
+                calculateTotalPrice(); // Update harga total setelah perubahan qty
+            },
+            error: function(xhr) {
+                console.error(xhr.responseText);
+                alert('Failed to update quantity.');
+            }
+        });
+    });
+
 
         calculateTotalPrice();
 
@@ -371,9 +402,9 @@
                 success: function(result) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Checkout berhasil!',
+                        title: 'Tunggu Pesanan Anda Akan di Konfimasi!',
                         showConfirmButton: false,
-                        timer: 5000,
+                        timer: 30000,
                         timerProgressBar: true,
                         didOpen: () => {
                             Swal.showLoading();
@@ -401,71 +432,22 @@
             });
         });
 
+        // Panggil untuk update total saat pertama kali
+        calculateTotalPrice();
 
-        // Reducing item quantity
-        $('tbody').on('submit', '.MinOrderItemGuest', function(event) {
-            event.preventDefault();
-            let id = $(this).data('id');
-            let url = `/guest/min/pending/order/${id}`;
-
-            $.ajax({
-                url: url,
-                type: 'PUT',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(result) {
-                    alert('Pengurangan Berhasil');
-                    location.reload();
-                },
-                error: function(xhr) {
-                    console.log(xhr.responseText);
-                    alert('Pengurangan Gagal 🤦‍♂️');
-                }
-            });
+        $('#searchInput, #categorySelect').on('input change', function() {
+            filterProducts(); // Panggil fungsi filter saat ada perubahan input
         });
-    });
 
-    // Adding item quantity
-    $('tbody').on('submit', '.AddOrderItemGuest', function(event) {
-        event.preventDefault();
-        let id = $(this).data('id');
-        let url = `/guest/add/pending/order/${id}`; // URL untuk menambah kuantitas
-
-        $.ajax({
-            url: url,
-            type: 'PUT',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(result) {
-                alert('Penambahan Berhasil');
-                location.reload();
-            },
-            error: function(xhr) {
-                console.log(xhr.responseText);
-                alert('Penambahan Gagal 🤦‍♂️');
-            }
-        });
-    });
-
-    $('#searchInput, #categorySelect').on('input change', function() {
-                filterProducts(); // Panggil fungsi filter saat ada perubahan input
-            });
-
-            function filterProducts() {
+        function filterProducts() {
             var search = $('#searchInput').val().toLowerCase();
             var category = $('#categorySelect').val();
-
-            console.log('Filter by category:', category); // Tambahkan ini untuk melihat nilai kategori
 
             // Loop semua produk dan hide/show berdasarkan filter
             $('.product-item').each(function() {
                 var productName = $(this).data('name').toLowerCase();
                 var productCode = $(this).data('code').toLowerCase();
                 var productCategory = $(this).data('category');
-
-                console.log('Product category:', productCategory); // Tambahkan ini untuk melihat kategori produk
 
                 // Cek apakah produk sesuai dengan search dan category
                 var isVisible = true;
@@ -479,11 +461,9 @@
                 }
 
                 // Tampilkan atau sembunyikan produk
-                if (isVisible) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
+                $(this).toggle(isVisible);
             });
         }
+    });
 </script>
+

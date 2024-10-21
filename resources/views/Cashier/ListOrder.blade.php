@@ -242,6 +242,10 @@
                 });
             @endforeach
 
+            $('#btnKembali').on('click', function() {
+                $('#invoiceModal').modal('hide'); // Menutup modal ketika tombol "Kembali" ditekan
+            });
+
             // Function to display the invoice
             function displayInvoice(invoice) {
                 $('#invoiceId').text(invoice.id);

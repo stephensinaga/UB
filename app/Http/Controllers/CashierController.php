@@ -212,31 +212,49 @@ class CashierController extends Controller
         return redirect()->route('CashierView');
     }
 
-    public function MinOrderItemGuest($id)
+    // public function MinOrderItemGuest($id) {
+    //     $product = Order::where('id', $id)->first();
+
+    //     if ($product) {
+    //         if ($product->qty > 1) { // Pastikan qty tidak kurang dari 1
+    //             $product->qty -= 1;
+    //             $product->save();
+    //             return response()->json(['new_qty' => $product->qty]);
+    //         } else {
+    //             $product->delete();
+    //             return response()->json(['new_qty' => 0]); // Jika dihapus
+    //         }
+    //     }
+    //     return response()->json(['error' => 'Product not found'], 404);
+    // }
+
+    // public function AddOrderItemGuest($id) {
+    //     $product = Order::where('id', $id)->first();
+
+    //     if ($product) {
+    //         $product->qty += 1;
+    //         $product->save();
+    //         return response()->json(['new_qty' => $product->qty]);
+    //     }
+    //     return response()->json(['error' => 'Product not found'], 404);
+    // }
+
+    public function UpdateOrderItemQtyGuest(Request $request, $id)
     {
         $product = Order::where('id', $id)->first();
 
         if ($product) {
-            $product->qty -= 1;
-
-            if ($product->qty <= 0) {
-                $product->delete();
-            } else {
+            $newQty = $request->input('qty');
+            if ($newQty > 0) {
+                $product->qty = $newQty; // Pastikan qty diperbarui
                 $product->save();
+                return response()->json(['new_qty' => $product->qty]);
+            } else {
+                $product->delete(); // Hapus produk jika qty = 0
+                return response()->json(['new_qty' => 0]);
             }
         }
-        return redirect()->route('GuestCashierView');
-    }
-
-    public function AddOrderItemGuest($id)
-    {
-        $product = Order::where('id', $id)->first();
-
-        if ($product) {
-            $product->qty += 1;
-            $product->save();
-        }
-        return redirect()->route('GuestCashierView');
+        return response()->json(['error' => 'Product not found'], 404);
     }
 
     public function GuestCheckOut(Request $request)
@@ -269,9 +287,12 @@ class CashierController extends Controller
         }
 
         // Calculate grand total
-        $grandtotal = $orders->sum(function ($order) {
-            return $order->qty * $order->product_price;
-        });
+        $grandtotal = 0;
+
+        // Loop through orders and calculate total
+        foreach ($orders as $order) {
+            $grandtotal += $order->qty * $order->product_price; // Menghitung total
+        }
 
         // Create new main order for checkout
         $Checkout = new MainOrder();
