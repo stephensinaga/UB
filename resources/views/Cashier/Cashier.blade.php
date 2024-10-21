@@ -168,7 +168,7 @@
 
                                 <div class="no_meja-section mt-3">
                                     <label for="no_meja">Table Number</label>
-                                    <input type="number" class="form-control" id="cashGiven" name="no_meja"
+                                    <input type="number" class="form-control" id="tableNumber" name="no_meja"
                                         placeholder="Input Table Number">
                                 </div>
                                 <br>
@@ -195,7 +195,7 @@
 
                                 <div class="cash-section mt-3">
                                     <label for="cashGiven">Money Paid</label>
-                                    <input type="number" class="form-control" id="cashGiven" name="cash"
+                                    <input type="text" class="form-control" id="moneyPaid" name="cash"
                                         placeholder="Masukkan jumlah uang">
                                 </div>
 
@@ -237,6 +237,28 @@
                     $('.cash-section').toggle(paymentType === 'cash');
                     $('.transfer-section').toggle(paymentType === 'transfer');
                 });
+
+                $('#moneyPaid').on('input', function() {
+                    let value = $(this).val().replace(/\D/g, ''); // Hanya angka
+                    $(this).val(formatRupiah(value, 'Rp.')); // Format sebagai rupiah dengan prefix Rp.
+                });
+
+                // Fungsi untuk memformat angka sebagai Rupiah
+                function formatRupiah(angka, prefix) {
+                    let numberString = angka.replace(/[^,\d]/g, '').toString(),
+                        split = numberString.split(','),
+                        sisa = split[0].length % 3,
+                        rupiah = split[0].substr(0, sisa),
+                        ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+                    if (ribuan) {
+                        separator = sisa ? '.' : '';
+                        rupiah += separator + ribuan.join('.');
+                    }
+
+                    rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+                    return prefix == undefined ? rupiah : (rupiah ? prefix + rupiah : '');
+                }
 
             $('#btnKembali').on('click', function() {
                 $('#invoiceModal').modal('hide'); // Menutup modal ketika tombol "Kembali" ditekan

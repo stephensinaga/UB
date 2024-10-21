@@ -76,8 +76,8 @@
                                     <div id="cashSection-{{ $order->id }}">
                                         <div class="mb-3">
                                             <label for="cash" class="form-label">Cash Amount</label>
-                                            <input type="number" class="form-control" name="cash" id="cash"
-                                                required>
+                                            <input type="text" class="form-control" name="cash_formatted" id="cashFormatted-{{ $order->id }}" required>
+                                            <input type="hidden" name="cash" id="cash-{{ $order->id }}">
                                         </div>
                                     </div>
 
@@ -240,6 +240,29 @@
                         }
                     });
                 });
+
+                $('#cashFormatted-{{ $order->id }}').on('input', function() {
+                    let value = $(this).val().replace(/\D/g, ''); // Hanya angka
+                    $(this).val(formatRupiah(value, 'Rp.')); // Format sebagai rupiah dengan prefix Rp.
+                    $('#cash-{{ $order->id }}').val(value); // Simpan nilai asli tanpa format
+                });
+
+                // Fungsi untuk memformat angka sebagai Rupiah
+                function formatRupiah(angka, prefix) {
+                    let numberString = angka.replace(/[^,\d]/g, '').toString(),
+                        split = numberString.split(','),
+                        sisa = split[0].length % 3,
+                        rupiah = split[0].substr(0, sisa),
+                        ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+                    if (ribuan) {
+                        separator = sisa ? '.' : '';
+                        rupiah += separator + ribuan.join('.');
+                    }
+
+                    rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+                    return prefix == undefined ? rupiah : (rupiah ? prefix + rupiah : '');
+                }
             @endforeach
 
             $('#btnKembali').on('click', function() {
