@@ -21,9 +21,10 @@ class CreatePreOrdersTable extends Migration
             $table->text('keterangan')->nullable();
             $table->text('total_price');
             $table->enum('payment', ['cash', 'transfer'])->nullable();
-            $table->text('changes')->nullable();
+            $table->text('cash')->nullable();
             $table->text('transfer_img')->nullable();
-            $table->enum('status', ['payment', 'done'])->default('payment');
+            $table->enum('status', ['default', 'custom'])->default('default');
+            $table->enum('status_payment', ['payment', 'done'])->default('payment');
             $table->timestamps();
         });
     }

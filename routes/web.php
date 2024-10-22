@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CashierController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ExportLaporan;
+use App\Http\Controllers\PoController;
 use App\Http\Controllers\StockController;
 use App\Models\Stock;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +62,11 @@ Route::middleware(['auth'])->group(function () {
         // Create new
         Route::post("create/new/material", [StockController::class, "CreateMaterial"])->name("CreateMaterial");
         Route::post("create/new/unit", [StockController::class, "CreateUnit"])->name("CreateUnit");
+
+        // Pre Order
+        Route::prefix('pre/order')->group(function () {
+            Route::get('view', [PoController::class, 'View'])->name('PoView');
+        });
 
         // Stock
         Route::prefix('stock')->group(function () {

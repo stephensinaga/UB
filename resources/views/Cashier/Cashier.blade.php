@@ -104,7 +104,7 @@
                                 </tfoot>
                             </table>
                         </div>
-                        
+
                         <div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog"
                             aria-labelledby="invoiceModalLabel" aria-hidden="true">
                             <div class="modal-dialog" role="document">
@@ -127,7 +127,7 @@
                                                     <td id="cashierName"></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Pelanggan:</th>
+                                                    <th>Pelanggan:</th> 
                                                     <td id="customerNames"></td>
                                                 </tr>
                                                 <tr>
@@ -161,7 +161,7 @@
                                 </div>
                             </div>
                         </div> <!-- Closing div for modal -->
-                        
+
                         <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
                             @csrf
                             <div class="form-group">
@@ -179,54 +179,13 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnKembali">Kembali</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                                    id="btnKembali">Kembali</button>
                                 <button type="button" class="btn btn-primary" id="PrintInvoice">Print</button>
                             </div>
-                        </div>
                     </div>
-                </div> <!-- Closing div for modal -->
-                <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
-                    @csrf
-                    <div class="form-group">
-                        <label for="customerSelect">Customer</label>
-                        <select class="form-control" id="customerSelect" name="customer_select">
-                            <option value="">Choose Customer</option>
-                            @foreach ($customers as $customer)
-                            <option value="{{ $customer->customer }}">{{ $customer->customer }}</option>
-                            @endforeach
-                            <option value="other">Other (fill manual)</option>
-                        </select>
-                        <div id="manualEntry" class="manual-entry mt-2" style="display: none;">
-                            <label for="customerName">Enter Customer Name</label>
-                            <input type="text" class="form-control" id="customerName" name="customer">
-                        </div>
-
-                        <br>
-                        <label for="paymentType">Payment Type</label>
-                        <select class="form-control" id="paymentType" name="payment_type">
-                            <option value="">Choose Payment Type</option>
-                            <option value="cash">Cash</option>
-                            <option value="transfer">Transfer</option>
-                        </select>
-
-                        <div class="cash-section mt-3">
-                            <label for="cashGiven">Money Paid</label>
-                            <input type="number" class="form-control" id="cashGiven" name="cash"
-                                placeholder="Masukkan jumlah uang">
-                        </div>
-
-                        <div class="transfer-section mt-3" style="display: none;">
-                            <label for="transferProof">Upload Proof of Transfer</label>
-                            <input type="file" class="form-control-file" id="transferProof" name="transfer_proof">
-                        </div>
-
-                        <div class="text-right">
-                            <button type="submit" class="btn btn-primary mt-3" name="checkout_type"
-                                value="checkout">Checkout</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+                </div>
+            </div> <!-- Closing div for modal -->
         </div>
 </div>
 </div>

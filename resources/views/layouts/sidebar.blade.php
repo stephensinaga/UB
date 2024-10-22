@@ -33,6 +33,13 @@ $user = Auth::user();
                 <span>Weekly Receipts</span>
             </a>
         </li>
+
+        <li class="nav-item">
+            <a class="nav-link " href="{{ route('PoView') }}">
+                <i class="bi bi-bag-check"></i>
+                <span>Pre Order</span>
+            </a>
+        </li>
         @endif
 
         @if ($user->role === 'cashier')
