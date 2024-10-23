@@ -320,7 +320,6 @@ class CashierController extends Controller
     public function CheckOut(Request $request)
     {
         $request->validate([
-            'customer_select' => 'required',
             'payment_type' => 'required',
             'cash' => 'nullable|numeric|min:0',
             'transfer_proof' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',

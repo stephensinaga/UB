@@ -18,7 +18,7 @@ class CreateMainOrdersTable extends Migration
             $table->integer('no_invoice');
             $table->integer('no_meja')->nullable();
             $table->string('cashier')->nullable();
-            $table->string('customer');
+            $table->string('customer')->nullable();
             $table->bigInteger('grandtotal');
             $table->enum('payment', ['cash','transfer'])->nullable();
             $table->bigInteger('cash')->nullable();
