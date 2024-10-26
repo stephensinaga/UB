@@ -15,11 +15,12 @@ class CreatePreOrderItemsTable extends Migration
     {
         Schema::create('pre_order_items', function (Blueprint $table) {
             $table->id();
-            $table->integer('pre_order_id');
+            $table->integer('pre_order_id')->nullable();
             $table->text('product');
             $table->bigInteger('qty');
             $table->bigInteger('price');
-            $table->text('keterangan');
+            $table->bigInteger('grandtotal');
+            $table->text('keterangan')->nullable();
             $table->timestamps();
         });
     }

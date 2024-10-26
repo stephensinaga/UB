@@ -66,6 +66,8 @@ Route::middleware(['auth'])->group(function () {
         // Pre Order
         Route::prefix('pre/order')->group(function () {
             Route::get('view', [PoController::class, 'View'])->name('PoView');
+            Route::post('save/product', [PoController::class, 'SavePOItem'])->name('SavePOItem');
+            Route::delete('delete/item/{id}', [PoController::class, 'DeleteItem'])->name(('DeletePOItem'));
         });
 
         // Stock
