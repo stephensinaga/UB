@@ -35,7 +35,7 @@
                                 <div class="d-flex align-items-center">
                                     <div class="card-icon d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
                                         @if ($item->product_images)
-                                        <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" class="img-fluid" style="object-fit: cover;">
+                                        <img src="{{ asset($item->product_images) }}" alt="Product Image" width="100">
                                         @else
                                         <i class="bi bi-cart" style="font-size: 3rem;"></i>
                                         @endif

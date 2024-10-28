@@ -73,8 +73,10 @@ class AdminController extends Controller
         if ($request->hasFile('product_images')) {
             $image = $request->file('product_images');
             $imageName = time() . '_' . $image->getClientOriginalName();
-            $imagePath = $image->storeAs('product_images', $imageName, 'public');
+            $imagePath = $image->move(public_path('product_images'), $imageName);
+            $imagePath = 'product_images/' . $imageName;
         }
+
 
         $product = new Product;
         $product->product_name = $request->product_name;
