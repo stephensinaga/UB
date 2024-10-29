@@ -103,24 +103,40 @@ class AdminController extends Controller
 
     public function EditProduct(Request $request, $id)
     {
-        $data = Product::where('id', $id)->first();
+        $request->validate([
+            'product_name' => 'required|string|max:255',
+            'product_code' => 'required|string|max:255',
+            'product_category' => 'required|string|max:255',
+            'product_price' => 'required|numeric',
+            'product_images' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
+        $data = Product::findOrFail($id);
+
+        // Update or create the category
+        $category = Category::firstOrCreate(
+            ['category' => $request->product_category],
+            ['category' => $request->product_category]
+        );
+
+        // Process image upload if a new image is uploaded
         if ($request->hasFile('product_images')) {
             $image = $request->file('product_images');
             $imageName = time() . '_' . $image->getClientOriginalName();
-            $imagePath = $image->storeAs('product_images', $imageName, 'public');
-
-            $data->product_images = $imagePath;
+            $image->move(public_path('product_images'), $imageName);
+            $data->product_images = 'product_images/' . $imageName;
         }
 
+        // Update product data
         $data->product_name = $request->product_name;
         $data->product_code = $request->product_code;
-        $data->product_category = $request->product_category;
+        $data->product_category = $category->category;
         $data->product_price = $request->product_price;
-        $data->update();
+        $data->save();
 
-        return redirect(route('CreateProductView'));
+        return redirect(route('CreateProductView'))->with('success', 'Product updated successfully.');
     }
+
 
     public function ExportLaporanPDF()
     {
