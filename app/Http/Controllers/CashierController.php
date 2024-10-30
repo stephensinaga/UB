@@ -424,12 +424,14 @@ class CashierController extends Controller
 
         // Proses upload gambar bukti transfer jika ada
         if ($request->hasFile('img')) {
-            $transfer = $request->file('img');                             // Ambil file gambar
+            $transfer = $request->file('img'); // Ambil file gambar
             $transferImageName = time() . '_' . $transfer->getClientOriginalName(); // Generate nama file unik
-            $transferImage = $transfer->storeAs('bukti_transfer', $transferImageName, 'public'); // Simpan gambar
 
-            // Simpan path gambar transfer di database
-            $order->transfer_image = $transferImage;
+            // Simpan gambar langsung ke public/bukti_transfer
+            $transfer->move(public_path('bukti_transfer'), $transferImageName);
+
+            // Simpan path gambar transfer di database, tanpa "public/" di depannya
+            $order->transfer_image = 'bukti_transfer/' . $transferImageName;
         }
 
         // Update status menjadi 'checkout'

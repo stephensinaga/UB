@@ -33,9 +33,9 @@
                             <div class="card-body">
                                 <h4 class="card-title text-truncate" style="font-size: 1rem;">{{ $item->product_name }}</h4>
                                 <div class="d-flex align-items-center">
-                                    <div class="card-icon d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                                    <div class="card-icon d-flex align-items-center justify-content-center" style="width: 180px; height: 200px;"> <!-- Adjusted height -->
                                         @if ($item->product_images)
-                                        <img src="{{ asset($item->product_images) }}" alt="Product Image" width="100">
+                                        <img src="{{ asset($item->product_images) }}" alt="Product Image" width="170" height="190" style="object-fit: cover;"> <!-- Increased width and height -->
                                         @else
                                         <i class="bi bi-cart" style="font-size: 3rem;"></i>
                                         @endif
