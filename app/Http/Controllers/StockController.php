@@ -275,7 +275,6 @@ class StockController extends Controller
 
         $item = new WeeklyReceipts();
         $item->admin = Auth::user()->name;
-        $item->type = 'stock';
         $item->id_material = $request->id_material; // Menggunakan id_material yang valid
         $item->qty = $qty;
         $item->id_unit = $request->id_unit; // Menggunakan id_unit yang valid
@@ -348,8 +347,9 @@ class StockController extends Controller
 
     public function SaveWeeklyReceipts(Request $request)
     {
-        // Get array of IDs from the request
+        // Get array of IDs and the type from the request
         $ids = $request->input('ids');
+        $type = $request->input('type'); // Retrieve type parameter from the request
 
         // Check if there are IDs in the request
         if (empty($ids)) {
@@ -361,7 +361,6 @@ class StockController extends Controller
 
         // Retrieve all pending receipts matching the IDs
         $items = WeeklyReceipts::whereIn('id', $ids)
-            ->where('type', 'stock')
             ->where('status', 'pending')
             ->where('admin', Auth::user()->name)
             ->get();
@@ -374,12 +373,16 @@ class StockController extends Controller
             ]);
         }
 
-        // Loop through each item and update status to 'purchased'
+        // Loop through each item and update type and status
         foreach ($items as $item) {
+            $item->type = $type; // Set the type based on the parameter
             $item->status = 'purchased';
             $item->save();
 
-            $this->UpdateStockFromReceipts($item);
+            // Call UpdateStockFromReceipts only if the type is 'stock'
+            if (trim(strtolower($type)) === 'stock') {
+                $this->UpdateStockFromReceipts($item);
+            }
         }
 
         return response()->json([

@@ -16,7 +16,7 @@ class CreateWeeklyReceiptsTable extends Migration
         Schema::create('weekly_receipts', function (Blueprint $table) {
             $table->id();
             $table->text('admin');
-            $table->enum('type', ['stock', 'po']);
+            $table->enum('type', ['stock', 'po'])->default('stock');
             $table->text('id_material');
             $table->integer('qty');
             $table->text('id_unit');

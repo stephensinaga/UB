@@ -13,7 +13,7 @@ class PoController extends Controller
     {
         $product = Product::all();
         $item = PreOrderItem::whereNull('pre_order_id')->get();
-        return view('Admin.PO.PreOrder', compact('product','item'));
+        return view('Admin.PO.PreOrder', compact('product', 'item'));
     }
 
     public function SavePOItem(Request $request)
@@ -31,14 +31,49 @@ class PoController extends Controller
         $item->save();
     }
 
-    public function DeleteItem($id){
+    public function DeleteItem($id)
+    {
         $item = PreOrderItem::where('id', $id)->first();
         $item->delete();
         return back();
     }
 
-    public function MakePreOrder(Request $request){
-        
-    }
+    public function MakePreOrder(Request $request)
+    {
+        $ids = $request->input('ids');
 
+        // Check if there are IDs
+        if (empty($ids)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No item found.'
+            ]);
+        }
+
+        $items = PreOredrItem::whereNull('pre_order_id')->get();
+        $totalPrice = $items->sum('grandtotal');
+
+        $cashGiven = $request->cash ?? 0;
+        $changes = $cashGiven - $totalPrice;
+
+        $transferImage = null;
+        if ($request->hasFile('transfer_proof')) {
+            $transfer = $request->file('transfer_proof');
+            $transferImageName = time() . '_' . $transfer->getClientOriginalName();
+            $transferImage = $transfer->storeAs('bukti_transfer', $transferImageName, 'public');
+        }
+
+
+        $order = new PreOrder();
+        $order->customer = $request->customer;
+        $order->customer_contact = $request->customer_contact;
+        $order->keterangan = $request->keterangan;
+        $order->total_price = $totalPrice;
+        $order->payment = $request->payment;
+        $order->cash = $cashGiven;
+        $order->transfer_img = $transferImage;
+        $order->save();
+
+        return back();
+    }
 }
