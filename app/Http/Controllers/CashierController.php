@@ -342,7 +342,8 @@ class CashierController extends Controller
         if ($request->hasFile('transfer_proof')) {
             $transfer = $request->file('transfer_proof');
             $transferImageName = time() . '_' . $transfer->getClientOriginalName();
-            $transferImage = $transfer->storeAs('bukti_transfer', $transferImageName, 'public');
+            $transfer->move(public_path('bukti_transfer'), $transferImageName);
+            $transferImage = 'bukti_transfer/' . $transferImageName;
         }
 
         $cashier = Auth::user();

@@ -407,8 +407,7 @@
         $('#cashRow').hide();
         $('#changesRow').hide();
         $('#transferProofRow').show();
-        $('#transferProofs').html('<a href="/storage/' + invoice.transfer_image +
-            '" target="_blank">Lihat Bukti Transfer</a>');
+        $('#transferProofs').html('<a href="/' + invoice.transfer_image + '" target="_blank">Lihat Bukti Transfer</a>');
     }
     $('#PrintInvoice').attr('data-id', invoice.id);
     $('#invoiceModal').modal('show');
