@@ -6,7 +6,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>POS</title>
+    <title>Dapur Negeriku</title>
 
     <!-- Google Fonts -->
     <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -31,7 +31,7 @@
 
     <!-- Template Main CSS File -->
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
-    <link rel="icon" href="{{ asset('assets/img/dapur_negeri.jpeg')}}" type="image/png">
+    <link rel="icon" href="{{ asset('assets/img/lgobbn.png')}}" type="image/png">
     <style>
         body {
             padding-top: 70px;

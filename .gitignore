@@ -1,6 +1,8 @@
 /node_modules
 /public/hot
 /public/storage
+/public/bukti_transfer
+/public/product_images
 /storage/*.key
 /vendor
 .env

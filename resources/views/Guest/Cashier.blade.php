@@ -3,7 +3,8 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="icon" href="{{ asset('assets/img/dapur_negeri.jpeg') }}" type="image/png">
+    <link rel="icon" href="{{ asset('assets/img/lgobbn.png')}}" type="image/png">
+    <title>Guest Order</title>
 
     <!-- Google Fonts -->
     <link href="https://fonts.gstatic.com" rel="preconnect">
