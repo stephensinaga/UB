@@ -64,11 +64,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post("create/new/unit", [StockController::class, "CreateUnit"])->name("CreateUnit");
 
         // Pre Order
-        Route::prefix('pre/order')->group(function () {
-            Route::get('view', [PoController::class, 'View'])->name('PoView');
-            Route::post('save/product', [PoController::class, 'SavePOItem'])->name('SavePOItem');
-            Route::delete('delete/item/{id}', [PoController::class, 'DeleteItem'])->name(('DeletePOItem'));
-            Route::post('save', [PoController::class,'MakePreOrder'])->name('MakePreOrder');
+        Route::prefix("PO")->group(function () {
+            Route::get("view", [PoController::class, 'view'])->name('PoBlade');
+            Route::post('add/item', [PoController::class,'AddOrder'])->name('AddPoOrder');
+            Route::delete('delete/item/{id}', [PoController::class,'Delete'])->name('DeletePoOrder');
         });
 
         // Stock

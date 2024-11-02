@@ -149,10 +149,10 @@
                                 <td>Rp {{ number_format($stocks->total, 2, ',', '.') }}</td>
                                 <td>{{ $stocks->information ?? '-' }}</td>
                                 <td>{{ $stocks->created_at }}</td>
-                                {{-- <td>
+                                <td>
                                     <a href="{{ route('UpdateView', ['id' => $stocks->id]) }}"
                                         class="btn btn-sm btn-warning">Update</a>
-                                </td> --}}
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>

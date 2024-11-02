@@ -17,9 +17,10 @@ class CreatePreOrderItemsTable extends Migration
             $table->id();
             $table->integer('pre_order_id')->nullable();
             $table->text('product');
+            $table->text('unit');
             $table->bigInteger('qty');
-            $table->bigInteger('price');
-            $table->bigInteger('grandtotal');
+            $table->decimal('price', 10,2);
+            $table->decimal('grandtotal', 10,2);
             $table->text('keterangan')->nullable();
             $table->timestamps();
         });

@@ -35,7 +35,7 @@ $user = Auth::user();
         </li>
 
         <li class="nav-item">
-            <a class="nav-link " href="{{ route('PoView') }}">
+            <a class="nav-link " href="{{ route('PoBlade') }}">
                 <i class="bi bi-bag-check"></i>
                 <span>Pre Order</span>
             </a>
