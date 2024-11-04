@@ -19,9 +19,9 @@ class CreatePreOrdersTable extends Migration
             $table->text('customer');
             $table->text('customer_contact');
             $table->text('keterangan')->nullable();
-            $table->text('total_price');
+            $table->decimal('total_price', 10,2);
             $table->enum('payment', ['cash', 'transfer'])->nullable();
-            $table->text('cash')->nullable();
+            $table->decimal('cash', 10,2)->nullable();
             $table->text('transfer_img')->nullable();
             $table->enum('progress', ['pending', 'inProgress', 'done'])->default('pending');
             $table->timestamps();
