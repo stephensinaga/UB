@@ -24,6 +24,9 @@ Route::middleware(['guest'])->group(function () {
         Route::get('cashier/view', [CashierController::class, 'GuestView'])->name('GuestCashierView');
         Route::post('order/selected/product/{id}', [CashierController::class, 'GuestOrder'])->name('GuestOrder');
         Route::post('checkout/selected/order', [CashierController::class, 'GuestCheckout'])->name('GuestCheckout');
+        // Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItemGuest'])->name('MinOrderItemGuest');
+        // Route::put('add/pending/order/{id}', [CashierController::class, 'AddOrderItemGuest'])->name('AddOrderItemGuest');
+        Route::put('update/qty/order/{id}', [CashierController::class, 'UpdateOrderItemQtyGuest'])->name('UpdateOrderItemQtyGuest');
     });
 });
 
@@ -88,11 +91,20 @@ Route::middleware(['auth'])->group(function () {
         Route::post('order/selected/product/{id}', [CashierController::class, 'Order'])->name('OrderProduct');
         Route::post('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');
         Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItem'])->name('MinOrderItem');
+        Route::put('add/pending/order/{id}', [CashierController::class, 'AddOrderItem'])->name('AddOrderItem');
+
         Route::get('print/invoice/{id}', [CashierController::class, 'printInvoice'])->name('PrintInvoice');
 
+        Route::get('list/pending/order', [CashierController::class, 'ListOrder'])->name('ListOrder');
+        Route::put('process/pending/order/{id}/{type}/{cash}/{img}', [CashierController::class, 'ProcessPendingOrder'])->name('ProcessPendingOrder');
+        Route::put('save/pending/order/{id}', [CashierController::class, 'SavePendingOrder'])->name('SavePendingOrder');
+        Route::post('upload-transfer-proof', [CashierController::class, 'uploadTransferProof'])->name('uploadTransferProof');
+
+
         // Laporan Penjualan
-        Route::get('history/penjualan/', [AdminController::class, 'HistoryPenjualanCashier'])->name('HistoryPenjualanCashier');
+        Route::get('history/penjualan', [AdminController::class, 'HistoryPenjualanCashier'])->name('HistoryPenjualanCashier');
         Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporan'])->name('DetailLaporan');
         Route::get('export/laporan/penjualan/harian', [ExportController::class, 'ExportLaporanPenjualanHarian'])->name('ExportLaporanPenjualanHarian');
     });
+
 });

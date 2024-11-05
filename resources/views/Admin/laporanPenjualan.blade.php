@@ -114,11 +114,10 @@
                             <td>{{ ucfirst($order->status) }}</td>
                             <td>
                                 @if ($order->transfer_image)
-                                    <a href="{{ asset('storage/' . $order->transfer_image) }}" target="_blank">View
-                                        Image</a>
-                                @else
-                                    N/A
-                                @endif
+                                <a href="{{ asset($order->transfer_image) }}" target="_blank">View Image</a>
+                            @else
+                                N/A
+                            @endif
                             </td>
                             <td>{{ $order->created_at->format('d M Y') }}</td>
                             <td>

@@ -88,7 +88,7 @@
                     <td>{{ $index + 1 }}</td>
                     <td>
                         @if($item->product_images)
-                        <img src="{{ asset('storage/' . $item->product_images) }}" alt="Product Image" width="100">
+                        <img src="{{ asset($item->product_images) }}" alt="Product Image" width="100">
                         @else
                         No Image
                         @endif

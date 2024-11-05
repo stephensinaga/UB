@@ -24,6 +24,7 @@
 
   <!-- Template Main CSS File -->
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+  <link rel="icon" href="{{ asset('assets/img/lgobbn.png')}}" type="image/png">
 </head>
 
 <body>
@@ -61,7 +62,7 @@
                               @endforeach
                             </ul>
                           </div>
-                          @endif    
+                          @endif
                     <div class="col-12">
                       <label for="email" class="form-label">Email</label>
                       <div class="input-group has-validation">

@@ -26,8 +26,10 @@ class CashierController extends Controller
         $search = $request->input('search');
         $category = $request->input('category');
 
-        $productQuery = Product::query();  // Mulai dari query builder
+        // Mulai dari query builder
+        $productQuery = Product::query();
 
+        // Filter berdasarkan search input
         if ($search) {
             $productQuery->where(function ($query) use ($search) {
                 $query->where('product_name', 'like', '%' . $search . '%')
@@ -35,13 +37,16 @@ class CashierController extends Controller
             });
         }
 
+        // Filter berdasarkan kategori
         if ($category) {
-            $productQuery->where('product_category', $category);  // Tambahkan ke query builder
+            $productQuery->where('product_category', $category);
         }
 
-        $product = $productQuery->get();  // Panggil get() hanya setelah semua query selesai
+        // Ambil data produk dengan pagination
+        $product = $productQuery->get(); // Batasi 12 produk per halaman
         $categories = Category::all();
 
+        // Data lainnya
         $order = Order::whereNull('main_id')->get();
         $customers = Customer::all();
         $invoice = MainOrder::latest()->first();
@@ -73,10 +78,7 @@ class CashierController extends Controller
             $productQuery->where('product_category', $category);
         }
 
-        // Ambil produk sesuai dengan filter yang ada
-        $product = $productQuery->get();
-
-        // Ambil semua kategori produk
+        $product = $productQuery->get(); // Batasi 12 produk per halaman
         $categories = Category::all();
 
         // Mencari orders berdasarkan no_meja, customer_name, dan main_id yang null
@@ -196,6 +198,63 @@ class CashierController extends Controller
                 $product->save();
             }
         }
+        return redirect()->route('CashierView');
+    }
+
+    public function AddOrderItem($id)
+    {
+        $product = Order::where('id', $id)->first();
+
+        if ($product) {
+            $product->qty += 1;
+            $product->save();
+        }
+        return redirect()->route('CashierView');
+    }
+
+    // public function MinOrderItemGuest($id) {
+    //     $product = Order::where('id', $id)->first();
+
+    //     if ($product) {
+    //         if ($product->qty > 1) { // Pastikan qty tidak kurang dari 1
+    //             $product->qty -= 1;
+    //             $product->save();
+    //             return response()->json(['new_qty' => $product->qty]);
+    //         } else {
+    //             $product->delete();
+    //             return response()->json(['new_qty' => 0]); // Jika dihapus
+    //         }
+    //     }
+    //     return response()->json(['error' => 'Product not found'], 404);
+    // }
+
+    // public function AddOrderItemGuest($id) {
+    //     $product = Order::where('id', $id)->first();
+
+    //     if ($product) {
+    //         $product->qty += 1;
+    //         $product->save();
+    //         return response()->json(['new_qty' => $product->qty]);
+    //     }
+    //     return response()->json(['error' => 'Product not found'], 404);
+    // }
+
+    public function UpdateOrderItemQtyGuest(Request $request, $id)
+    {
+        $product = Order::where('id', $id)->first();
+
+        if ($product) {
+            $newQty = $request->input('qty');
+            if ($newQty > 0) {
+                $product->qty = $newQty; // Pastikan qty diperbarui
+                $product->save();
+                return response()->json(['new_qty' => $product->qty]);
+            } else {
+                $product->delete(); // Hapus produk jika qty = 0
+                return response()->json(['new_qty' => 0]);
+            }
+        }
+        return response()->json(['error' => 'Product not found'], 404);
     }
 
     public function GuestCheckOut(Request $request)
@@ -214,8 +273,10 @@ class CashierController extends Controller
         $customerName = session('customer_name');
 
         // Generate no_invoice, incremented and reset every day
-        $today = Carbon::now()->format('d-m-y');
+        $today = Carbon::today(); // Use Carbon::today() to compare correctly with whereDate
         $lastInvoice = MainOrder::whereDate('created_at', $today)->orderBy('no_invoice', 'desc')->first();
+
+        // Increment invoice number
         $noInvoice = $lastInvoice ? $lastInvoice->no_invoice + 1 : 1;
 
         // Get pending orders for the table
@@ -226,9 +287,12 @@ class CashierController extends Controller
         }
 
         // Calculate grand total
-        $grandtotal = $orders->sum(function ($order) {
-            return $order->qty * $order->product_price;
-        });
+        $grandtotal = 0;
+
+        // Loop through orders and calculate total
+        foreach ($orders as $order) {
+            $grandtotal += $order->qty * $order->product_price; // Menghitung total
+        }
 
         // Create new main order for checkout
         $Checkout = new MainOrder();
@@ -256,7 +320,6 @@ class CashierController extends Controller
     public function CheckOut(Request $request)
     {
         $request->validate([
-            'customer_select' => 'required',
             'payment_type' => 'required',
             'cash' => 'nullable|numeric|min:0',
             'transfer_proof' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
@@ -279,12 +342,21 @@ class CashierController extends Controller
         if ($request->hasFile('transfer_proof')) {
             $transfer = $request->file('transfer_proof');
             $transferImageName = time() . '_' . $transfer->getClientOriginalName();
-            $transferImage = $transfer->storeAs('bukti_transfer', $transferImageName, 'public');
+            $transfer->move(public_path('bukti_transfer'), $transferImageName);
+            $transferImage = 'bukti_transfer/' . $transferImageName;
         }
 
         $cashier = Auth::user();
 
+        // Generate invoice number
+        $today = now()->format('Y-m-d');
+        // Cari pesanan terakhir pada hari ini
+        $lastOrder = MainOrder::whereDate('created_at', $today)->orderBy('id', 'desc')->first();
+        $newInvoiceNumber = $lastOrder ? ($lastOrder->no_invoice + 1) : 1;
+
         $Checkout = new MainOrder();
+        $Checkout->no_meja = $request->no_meja;
+        $Checkout->no_invoice = $newInvoiceNumber; // Assign new invoice number
         $Checkout->cashier = $cashier->name;
         $Checkout->customer = $customer->customer;
         $Checkout->grandtotal = $grandtotal;
@@ -299,19 +371,80 @@ class CashierController extends Controller
 
         foreach ($orders as $order) {
             $order->main_id = $mainOrderId;
+            $order->customer = $customer->customer;
+            $order->no_meja = $request->no_meja;
             $order->save();
         }
 
         $invoice = MainOrder::where('id', $Checkout->id)->first();
-
-        // $pdf = FacadePdf::loadView('struk.invoice_template', compact('invoice', 'orders', 'customer'))
-        //     ->setPaper([0, 0, 226.77, 841.89]);
 
         return response()->json([
             'message' => 'Checkout berhasil',
             'invoice' => $invoice,
         ], 200);
     }
+
+    public function SavePendingOrder(Request $request, $id)
+    {
+        // Cari order berdasarkan ID atau kembalikan error jika tidak ditemukan
+        $order = MainOrder::findOrFail($id);
+        $cashier = Auth::user(); // Pastikan pengguna sudah login
+
+        // Pastikan pengguna sudah terautentikasi
+        if (!$cashier) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Inisialisasi variabel untuk tipe pembayaran, uang yang diberikan, dan kembalian
+        $type = $request->payment_type;
+        $cashGiven = null;
+        $changes = null;
+
+        // Cek metode pembayaran
+        if ($type === 'transfer') {
+            // Jika metode pembayaran transfer, cashGiven dan changes tetap null
+        } else {
+            // Jika metode pembayaran cash, hitung perubahan
+            $cashGiven = $request->cash;
+
+            // Validasi jumlah uang yang diberikan lebih besar dari atau sama dengan grandtotal
+            if ($cashGiven < $order->grandtotal) {
+                return response()->json(['error' => 'Cash given is less than total amount'], 400);
+            }
+
+            // Hitung perubahan
+            $changes = $cashGiven - $order->grandtotal;
+        }
+
+        // Update data order berdasarkan input
+        $order->cashier = $cashier->name; // Simpan nama kasir yang menangani
+        $order->payment = $type;          // Simpan tipe pembayaran
+        $order->cash = $cashGiven;         // Simpan uang yang diberikan (jika cash)
+        $order->changes = $changes;        // Simpan perubahan (jika cash)
+
+        // Proses upload gambar bukti transfer jika ada
+        if ($request->hasFile('img')) {
+            $transfer = $request->file('img'); // Ambil file gambar
+            $transferImageName = time() . '_' . $transfer->getClientOriginalName(); // Generate nama file unik
+
+            // Simpan gambar langsung ke public/bukti_transfer
+            $transfer->move(public_path('bukti_transfer'), $transferImageName);
+
+            // Simpan path gambar transfer di database, tanpa "public/" di depannya
+            $order->transfer_image = 'bukti_transfer/' . $transferImageName;
+        }
+
+        // Update status menjadi 'checkout'
+        $order->status = 'checkout';
+        $order->save(); // Simpan perubahan ke database
+
+        // Kembalikan respons JSON sukses dengan data invoice/order
+        return response()->json([
+            'message' => 'Order processed successfully',
+            'invoice' => $order, // Kirim seluruh data order sebagai respons
+        ], 200);
+    }
+
 
     public function printInvoice($id)
     {
@@ -332,7 +465,8 @@ class CashierController extends Controller
         }
     }
 
-    private function resizeImage($imagePath, $newWidth, $newHeight) {
+    private function resizeImage($imagePath, $newWidth, $newHeight)
+    {
         list($width, $height) = getimagesize($imagePath);
         $source = imagecreatefrompng($imagePath);
         $newImage = imagecreatetruecolor($newWidth, $newHeight);
@@ -366,7 +500,7 @@ class CashierController extends Controller
 
             // Memuat dan meresize gambar logo
             $logoPath = public_path('assets/img/dapur_negeri.png');
-            $resizedLogoPath = $this->resizeImage($logoPath, 125, 125); // Resize ke 200x200 piksel (ukuran lebih besar)
+            $resizedLogoPath = $this->resizeImage($logoPath, 210, 175); // Resize ke 200x200 piksel (ukuran lebih besar)
             $logo = EscposImage::load($resizedLogoPath, false); // Memuat gambar yang sudah di-resize
 
             // Mengatur justifikasi menjadi tengah untuk gambar
@@ -384,6 +518,12 @@ class CashierController extends Controller
             $printer->text("Date          : {$mainOrder->created_at->format('d/m/Y')}\n");
             $printer->text("Cashier       : {$mainOrder->cashier}\n");
             $printer->text("Customer      : {$mainOrder->customer}\n");
+
+            // Tambahkan nomor meja jika ada
+            if (isset($mainOrder->table_number)) {
+                $printer->text("Table No      : {$mainOrder->table_number}\n");
+            }
+
             $printer->text("Payment Method: " . ucfirst($mainOrder->payment) . "\n");
 
             if ($mainOrder->payment === 'cash') {
@@ -425,6 +565,7 @@ class CashierController extends Controller
             }
         }
     }
+
 
     public function testPrinterConnection()
     {
