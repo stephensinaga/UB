@@ -17,15 +17,15 @@ class UserTest extends Seeder
         $UserData = [
 
             [
-                'name' => 'Pasmod Cashier',
+                'name' => 'Cashier',
                 'email' => 'cashier@gmail.com',
-                'password' => 'pasmod123',
+                'password' => 'cashier#1',
                 'role' => 'cashier'
             ],
             [
                 'name' => 'Admin',
                 'email' => 'admin@gmail.com',
-                'password' => 'admin123',
+                'password' => 'admin#1',
                 'role' => 'admin'
             ],
         ];
