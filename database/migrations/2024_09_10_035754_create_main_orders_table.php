@@ -19,10 +19,10 @@ class CreateMainOrdersTable extends Migration
             $table->integer('no_meja')->nullable();
             $table->string('cashier')->nullable();
             $table->string('customer')->nullable();
-            $table->bigInteger('grandtotal');
+            $table->decimal('grandtotal', 10,2);
             $table->enum('payment', ['cash','transfer'])->nullable();
-            $table->bigInteger('cash')->nullable();
-            $table->bigInteger('changes')->nullable();
+            $table->decimal('cash', 10,2)->nullable();
+            $table->decimal('changes', 10,2)->nullable();
             $table->string('transfer_image')->nullable();
             $table->enum('status', ['debt', 'pending', 'checkout']);
             $table->timestamps();

@@ -19,6 +19,27 @@ $user = Auth::user();
                 <span>Product</span>
             </a>
         </li>
+
+        <li class="nav-item">
+            <a class="nav-link " href="{{ route('StorageView') }}">
+                <i class="bi bi-boxes"></i>
+                <span>Material Stock</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link " href="{{ route('WeeklyReceiptsView') }}">
+                <i class="bi bi-receipt"></i>
+                <span>Weekly Receipts</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link " href="{{ route('PoBlade') }}">
+                <i class="bi bi-bag-check"></i>
+                <span>Pre Order</span>
+            </a>
+        </li>
         @endif
 
         @if ($user->role === 'cashier')

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('product_code');
             $table->text('product_category');
             $table->integer('qty');
-            $table->bigInteger('product_price');
+            $table->decimal('product_price',10,2);
             $table->timestamps();
         });
     }

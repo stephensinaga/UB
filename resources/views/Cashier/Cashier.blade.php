@@ -101,8 +101,6 @@
                                 </tfoot>
                             </table>
                         </div>
-
-                        <!-- Invoice Modal -->
                         <div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog"
                             aria-labelledby="invoiceModalLabel" aria-hidden="true">
                             <div class="modal-dialog" role="document">
@@ -127,7 +125,7 @@
                                                     <td id="cashierName"></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Pelanggan:</th>
+                                                    <th>Pelanggan:</th> 
                                                     <td id="customerNames"></td>
                                                 </tr>
                                                 <tr>
@@ -160,7 +158,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+
+                        </div> <!-- Closing div for modal -->
+
 
                         <form method="POST" id="CheckOutTable" enctype="multipart/form-data">
                             @csrf
@@ -184,6 +184,7 @@
                                     <label for="customerName">Enter Customer Name</label>
                                     <input type="text" class="form-control" id="customerName" name="customer">
                                 </div>
+
 
                                 <br>
                                 <label for="paymentType">Payment Type</label>
