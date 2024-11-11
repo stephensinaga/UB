@@ -204,7 +204,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($order as $item)
-                                    <tr data-product-id="{{ $item->id }}">
+                                    <tr data-product-id="{{ $item->id }}">  
                                         <td>{{ $item->product_name }}</td>
                                         <td>{{ number_format($item->product_price) }}</td>
                                         <td>

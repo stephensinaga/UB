@@ -76,17 +76,11 @@
                                         <td>{{ $item->product_name }}</td>
                                         <td>{{ number_format($item->product_price) }}</td>
                                         <td>
-                                            {{ $item->qty }}
-                                            <form method="post" action="{{ route('MinOrderItem', $item->id) }}" class="d-inline-block">
+                                            <!-- Form untuk update qty secara langsung dengan input number -->
+                                            <form method="post" action="{{ route('UpdateOrderItem', $item->id) }}" class="d-inline-block UpdateOrderItem" data-id="{{ $item->id }}">
                                                 @csrf
                                                 @method('PUT')
-                                                <button type="submit" class="btn btn-sm btn-danger">-</button>
-                                            </form>
-
-                                            <form method="post" action="{{ route('AddOrderItem', $item->id) }}" class="d-inline-block">
-                                                @csrf
-                                                @method('PUT')
-                                                <button type="submit" class="btn btn-sm btn-success">+</button>
+                                                <input type="number" name="qty" value="{{ $item->qty }}" class="form-control form-control-sm qty-input" min="1" data-id="{{ $item->id }}">
                                             </form>
                                         </td>
                                         <td>{{ number_format($item->qty * $item->product_price) }}</td>
@@ -125,7 +119,7 @@
                                                     <td id="cashierName"></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Pelanggan:</th> 
+                                                    <th>Pelanggan:</th>
                                                     <td id="customerNames"></td>
                                                 </tr>
                                                 <tr>
@@ -240,9 +234,9 @@
                 });
 
                 $('#moneyPaid').on('input', function() {
-                let value = $(this).val().replace(/\D/g, ''); // Hanya angka murni
-                $(this).val(formatRupiah(value, 'Rp.')); // Format sebagai rupiah dengan prefix Rp.
-                $(this).data('raw', value); // Simpan angka murni di atribut data
+                let value = $(this).val().replace(/\D/g, '');
+                $(this).val(formatRupiah(value, 'Rp.'));
+                $(this).data('raw', value);
             });
 
             // Fungsi untuk memformat angka sebagai Rupiah
@@ -263,11 +257,11 @@
             }
 
             $('#btnKembali').on('click', function() {
-                $('#invoiceModal').modal('hide'); // Menutup modal ketika tombol "Kembali" ditekan
+                $('#invoiceModal').modal('hide');
             });
 
             $('#searchInput, #categorySelect').on('input change', function() {
-                filterProducts(); // Panggil fungsi filter saat ada perubahan input
+                filterProducts();
             });
 
             function filterProducts() {
@@ -304,29 +298,32 @@
             });
         }
 
-            function calculateTotalPrice() {
-                let totalPrice = 0;
+        function calculateTotalPrice() {
+            let totalPrice = 0;
 
-                $('tbody tr').each(function() {
-                    let price = $(this).find('td:nth-child(2)').text().trim();
-                    price = parseFloat(price.replace(/[^0-9.-]+/g, ''));
+            $('tbody tr').each(function() {
+                let price = $(this).find('.item-price').text().trim();
+                price = parseFloat(price.replace(/[^0-9.-]+/g, '')); // Menghapus format Rupiah dan parsing ke float
 
-                    let qty = $(this).find('td:nth-child(3)').text().trim();
-                    qty = parseInt(qty);
+                let qty = $(this).find('.qty-value').text().trim();
+                qty = parseInt(qty);
 
-                    if (!isNaN(price) && !isNaN(qty)) {
-                        let totalItemPrice = price * qty;
-                        totalPrice += totalItemPrice;
-                    }
-                });
+                if (!isNaN(price) && !isNaN(qty)) {
+                    let totalItemPrice = price * qty;
+                    totalPrice += totalItemPrice;
+                }
+            });
 
-                $('tfoot tr td:last-child').text(totalPrice.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }));
-            }
+            $('#total-price').text(totalPrice.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
+        }
 
-            calculateTotalPrice();
+            // Memanggil calculateTotalPrice setiap kali ada perubahan qty atau setelah operasi lain yang mengubah total
+            $('.qty-input').on('change', function() {
+                calculateTotalPrice();
+            });
 
             // Ordering a product
             $('.OrderProduct').on('submit', function(event) {
@@ -369,6 +366,7 @@
                     processData: false,
                     success: function(result) {
                         displayInvoice(result.invoice);
+                        window.print();
                     },
                     error: function(xhr) {
                         console.log(xhr.responseText);
@@ -379,97 +377,79 @@
 
             // Function to display invoice
         function displayInvoice(invoice) {
-    $('#invoiceId').text(invoice.id);
-    $('#invoiceDate').text(new Date(invoice.created_at).toLocaleDateString());
-    $('#cashierName').text(invoice.cashier);
-    $('#customerNames').text(invoice.customer);
-    $('#grandTotal').text('Rp ' + parseFloat(invoice.grandtotal).toLocaleString('id-ID', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }));
-    $('#payments').text(invoice.payment.charAt(0).toUpperCase() + invoice.payment.slice(1));
+            $('#invoiceId').text(invoice.id);
+            $('#invoiceDate').text(new Date(invoice.created_at).toLocaleDateString());
+            $('#cashierName').text(invoice.cashier);
+            $('#customerNames').text(invoice.customer);
+            $('#grandTotal').text('Rp ' + parseFloat(invoice.grandtotal).toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
+            $('#payments').text(invoice.payment.charAt(0).toUpperCase() + invoice.payment.slice(1));
 
-    // Tampilkan nomor meja
-    $('#tableNumber').text(invoice.no_meja);
+            // Tampilkan nomor meja
+            $('#tableNumber').text(invoice.no_meja);
 
-    if (invoice.payment === 'cash') {
-        $('#cashRow').show();
-        $('#changesRow').show();
-        $('#cashs').text('Rp ' + parseFloat(invoice.cash).toLocaleString('id-ID', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }));
-        $('#changes').text('Rp ' + parseFloat(invoice.changes).toLocaleString('id-ID', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }));
-        $('#transferProofRow').hide();
-    } else if (invoice.payment === 'transfer') {
-        $('#cashRow').hide();
-        $('#changesRow').hide();
-        $('#transferProofRow').show();
-        $('#transferProofs').html('<a href="/' + invoice.transfer_image + '" target="_blank">Lihat Bukti Transfer</a>');
-    }
-    $('#PrintInvoice').attr('data-id', invoice.id);
-    $('#invoiceModal').modal('show');
-    $('.modal-backdrop').remove();
-}
-            function recalculateTotalPrice() {
-                let total = 0;
-
-                // Loop through each item row to sum the total price
-                $('tbody tr').each(function() {
-                    let qty = parseInt($(this).find('.qty-value').text()); // Get the current qty
-                    let price = parseFloat($(this).find('.item-price').text()); // Get the product price
-                    total += qty * price; // Calculate total for this item
-                });
-
-                // Update the total price in the footer
-                $('#total-price').text(total.toLocaleString());
+            if (invoice.payment === 'cash') {
+                $('#cashRow').show();
+                $('#changesRow').show();
+                $('#cashs').text('Rp ' + parseFloat(invoice.cash).toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
+                $('#changes').text('Rp ' + parseFloat(invoice.changes).toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
+                $('#transferProofRow').hide();
+            } else if (invoice.payment === 'transfer') {
+                $('#cashRow').hide();
+                $('#changesRow').hide();
+                $('#transferProofRow').show();
+                $('#transferProofs').html('<a href="/' + invoice.transfer_image + '" target="_blank">Lihat Bukti Transfer</a>');
             }
+            $('#PrintInvoice').attr('data-id', invoice.id);
+            $('#invoiceModal').modal('show');
+            $('.modal-backdrop').remove();
+        }
+        function recalculateTotalPrice() {
+            let total = 0;
 
-            // Reducing item quantity
-            $('tbody').on('submit', '.MinOrderItem', function(event) {
-                event.preventDefault();
-                let id = $(this).data('id');
-                let url = `/cashier/min/pending/order/${id}`;
-
-                $.ajax({
-                    url: url,
-                    type: 'PUT',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(result) {
-                        alert('Pengurangan Berhasil');
-                        location.reload();
-                    },
-                    error: function(xhr) {
-                        console.log(xhr.responseText);
-                        alert('Pengurangan Gagal 🤦‍♂️');
-                    }
-                });
+            // Loop through each item row to sum the total price
+            $('tbody tr').each(function() {
+                let qty = parseInt($(this).find('.qty-value').text()); // Get the current qty
+                let price = parseFloat($(this).find('.item-price').text()); // Get the product price
+                total += qty * price; // Calculate total for this item
             });
 
-            // Adding item quantity
-            $('tbody').on('submit', '.AddOrderItem', function(event) {
-                event.preventDefault();
-                let id = $(this).data('id');
-                let url = `/cashier/add/pending/order/${id}`; // URL untuk menambah kuantitas
+            // Update the total price in the footer
+            $('#total-price').text(total.toLocaleString());
+        }
+
+            // Updating quantity directly from input
+            $('tbody').on('change', '.qty-input', function(event) {
+                let id = $(this).closest('form').data('id'); // ID item dari form
+                let qty = $(this).val(); // Nilai qty yang baru dari input
+                let url = `/cashier/update/pending/order/${id}`; // URL endpoint untuk update qty
 
                 $.ajax({
                     url: url,
                     type: 'PUT',
+                    data: { qty: qty }, // Kirim data qty yang baru
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(result) {
-                        alert('Penambahan Berhasil');
-                        location.reload();
+                        // Tampilkan pesan sukses atau reload jika perlu
+                        if (result.success) {
+                            location.reload();
+                        } else {
+                            alert('Terjadi kesalahan saat memperbarui kuantitas');
+                        }
                     },
                     error: function(xhr) {
                         console.log(xhr.responseText);
-                        alert('Penambahan Gagal 🤦‍♂️');
+                        alert('Pembaruan Kuantitas Gagal 🤦‍♂️');
                     }
                 });
             });
@@ -487,7 +467,7 @@
                     type: 'GET',
                     success: function(response) {
                         alert(response.success);
-                        location.reload();
+                        // location.reload();
                     },
                     error: function(xhr) {
                         console.log(xhr);

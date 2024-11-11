@@ -24,8 +24,6 @@ Route::middleware(['guest'])->group(function () {
         Route::get('cashier/view', [CashierController::class, 'GuestView'])->name('GuestCashierView');
         Route::post('order/selected/product/{id}', [CashierController::class, 'GuestOrder'])->name('GuestOrder');
         Route::post('checkout/selected/order', [CashierController::class, 'GuestCheckout'])->name('GuestCheckout');
-        // Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItemGuest'])->name('MinOrderItemGuest');
-        // Route::put('add/pending/order/{id}', [CashierController::class, 'AddOrderItemGuest'])->name('AddOrderItemGuest');
         Route::put('update/qty/order/{id}', [CashierController::class, 'UpdateOrderItemQtyGuest'])->name('UpdateOrderItemQtyGuest');
     });
 });
@@ -92,6 +90,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('checkout/pending/product', [CashierController::class, 'CheckOut'])->name('CheckOutProduct');
         Route::put('min/pending/order/{id}', [CashierController::class, 'MinOrderItem'])->name('MinOrderItem');
         Route::put('add/pending/order/{id}', [CashierController::class, 'AddOrderItem'])->name('AddOrderItem');
+        Route::put('update/pending/order/{id}', [CashierController::class, 'updateOrderItem'])->name('UpdateOrderItem');
+
 
         Route::get('print/invoice/{id}', [CashierController::class, 'printInvoice'])->name('PrintInvoice');
 

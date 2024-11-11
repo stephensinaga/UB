@@ -185,31 +185,54 @@ class CashierController extends Controller
         return back();
     }
 
-    public function MinOrderItem($id)
+    // public function MinOrderItem($id)
+    // {
+    //     $product = Order::where('id', $id)->first();
+
+    //     if ($product) {
+    //         $product->qty -= 1;
+
+    //         if ($product->qty <= 0) {
+    //             $product->delete();
+    //         } else {
+    //             $product->save();
+    //         }
+    //     }
+    //     return redirect()->route('CashierView');
+    // }
+
+    // public function AddOrderItem($id)
+    // {
+    //     $product = Order::where('id', $id)->first();
+
+    //     if ($product) {
+    //         $product->qty += 1;
+    //         $product->save();
+    //     }
+    //     return redirect()->route('CashierView');
+    // }
+
+    public function updateOrderItem(Request $request, $id)
     {
         $product = Order::where('id', $id)->first();
 
         if ($product) {
-            $product->qty -= 1;
+            // Mengambil kuantitas baru dari request
+            $newQty = (int) $request->input('qty');
 
-            if ($product->qty <= 0) {
+            // Menghapus item jika kuantitasnya 0 atau kurang
+            if ($newQty <= 0) {
                 $product->delete();
+                return response()->json(['success' => true, 'message' => 'Item berhasil dihapus']);
             } else {
+                // Update kuantitas jika lebih dari 0
+                $product->qty = $newQty;
                 $product->save();
+                return response()->json(['success' => true, 'message' => 'Kuantitas berhasil diperbarui']);
             }
         }
-        return redirect()->route('CashierView');
-    }
 
-    public function AddOrderItem($id)
-    {
-        $product = Order::where('id', $id)->first();
-
-        if ($product) {
-            $product->qty += 1;
-            $product->save();
-        }
-        return redirect()->route('CashierView');
+        return response()->json(['success' => false, 'message' => 'Item tidak ditemukan'], 404);
     }
 
     // public function MinOrderItemGuest($id) {
