@@ -88,4 +88,21 @@ class PoController extends Controller
         ]);
     }
 
+
+    public function PoList()
+    {
+        $orders = PreOrder::where('progress', '!=', 'done')->get();
+        return view('Admin.PO.List', compact('orders'));
+    }
+
+    public function DeletePO($id)
+    {
+        $PO = PreOrder::find($id);
+
+        if ($PO) {
+            $PO->delete();
+        }
+
+        return back();
+    }
 }

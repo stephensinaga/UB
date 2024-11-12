@@ -72,6 +72,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('add/item', [PoController::class,'AddOrder'])->name('AddPoOrder');
             Route::delete('delete/item/{id}', [PoController::class,'Delete'])->name('DeletePoOrder');
             Route::post('proccess/order', [PoController::class, 'ProccessOrder'])->name('ProcessPoPendingOrder');
+
+            Route::get('list', [PoController::class,'PoList'])->name('PoList');
+            Route::delete('delete/po/{id}', [PoController::class,'DeletePO'])->name('DeletePO');
         });
 
         // Stock

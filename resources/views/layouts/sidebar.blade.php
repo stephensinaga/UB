@@ -67,6 +67,12 @@ $user = Auth::user();
 
         @if ($user->role === 'admin')
         <li class="nav-item">
+            <a class="nav-link" href="{{ route('PoList') }}">
+                <i class="bi bi-card-list"></i>
+                <span>PO List</span>
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link" href="{{ route('LaporanPenjualan') }}">
                 <i class="bi bi-journal-text"></i>
                 <span>Sales Report</span>
