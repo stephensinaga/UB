@@ -75,6 +75,8 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('list', [PoController::class,'PoList'])->name('PoList');
             Route::delete('delete/po/{id}', [PoController::class,'DeletePO'])->name('DeletePO');
+            Route::get('edit/blade/{id}', [PoController::class, 'EditPo'])->name('EditPo');
+            Route::put('update/detail/{id}', [PoController::class, 'updatePo'])->name('UpdatePo');
         });
 
         // Stock

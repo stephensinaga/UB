@@ -91,7 +91,9 @@ class PoController extends Controller
 
     public function PoList()
     {
-        $orders = PreOrder::where('progress', '!=', 'done')->get();
+        $orders = PreOrder::where('progress', '!=', 'done')
+            ->orderBy('created_at', 'desc') // Change 'created_at' to your desired field
+            ->get();
         return view('Admin.PO.List', compact('orders'));
     }
 
@@ -104,5 +106,36 @@ class PoController extends Controller
         }
 
         return back();
+    }
+
+    public  function EditPo($id)
+    {
+        $PoCustomer = PreOrder::find($id);
+        $PoDetail = PreOrderItem::where('pre_order_id', $id)->get();
+
+        return view('Admin.PO.editPo', compact('PoCustomer', 'PoDetail'));
+    }
+
+    public function updatePo(Request $request, $id)
+    {
+        // Update the main PreOrder details
+        $PreOrder = PreOrder::findOrFail($id);
+        $PreOrder->customer = $request->customer;
+        $PreOrder->customer_contact = $request->customer_contact;
+        $PreOrder->keterangan = $request->keterangan;
+        $PreOrder->progress = $request->progress;
+        $PreOrder->save();
+
+        // Loop through each PreOrderItem and update individual details if they exist in the request
+        $PreOrderItems = PreOrderItem::where("pre_order_id", $id)->get();
+        foreach ($PreOrderItems as $pi) {
+            // Check if the request contains an individual keterangan for this item
+            if (isset($request->PoDetail[$pi->id]['keteranganOrder'])) {
+                $pi->keterangan = $request->PoDetail[$pi->id]['keteranganOrder'];
+            }
+            $pi->save();
+        }
+
+        return back()->with('success', 'Pre Order updated successfully!');
     }
 }
