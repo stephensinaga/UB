@@ -80,7 +80,7 @@
                                             <form method="post" action="{{ route('UpdateOrderItem', $item->id) }}" class="d-inline-block UpdateOrderItem" data-id="{{ $item->id }}">
                                                 @csrf
                                                 @method('PUT')
-                                                <input type="number" name="qty" value="{{ $item->qty }}" class="form-control form-control-sm qty-input" min="1" data-id="{{ $item->id }}">
+                                                <input type="number" name="qty" value="{{ $item->qty }}" class="form-control form-control-sm qty-input" min="0" data-id="{{ $item->id }}">
                                             </form>
                                         </td>
                                         <td>{{ number_format($item->qty * $item->product_price) }}</td>
@@ -366,7 +366,7 @@
                     processData: false,
                     success: function(result) {
                         displayInvoice(result.invoice);
-                        window.print();
+                        // window.print();
                     },
                     error: function(xhr) {
                         console.log(xhr.responseText);
