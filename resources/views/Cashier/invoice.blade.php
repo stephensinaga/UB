@@ -3,101 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice</title>
+    <title>Invoice #{{ $mainOrder->id }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+            width: 80mm; /* Lebar kertas thermal 80mm */
         }
-        .invoice-box {
-            width: 100%;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #eee;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        .invoice {
+            padding: 10px;
         }
-        .invoice-header {
+        .center {
             text-align: center;
         }
-        .invoice-details, .order-details {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
+        .line {
+            border-bottom: 1px dashed #000;
+            margin: 10px 0;
         }
-        .invoice-details td, .order-details td, .order-details th {
-            padding: 8px;
-            border: 1px solid #ddd;
+        .details {
+            margin-bottom: 10px;
         }
-        .order-details th {
-            background-color: #f2f2f2;
+        .details th, .details td {
+            text-align: left;
         }
-        .text-right {
-            text-align: right;
+        .total {
+            font-weight: bold;
+            margin-top: 10px;
         }
     </style>
 </head>
-<body>
-
-<div class="invoice-box">
-    <h2 class="invoice-header">Invoice</h2>
-
-    <table class="invoice-details">
-        <tr>
-            <td><strong>Invoice No:</strong> {{ $mainOrder->id }}</td>
-            <td class="text-right"><strong>Date:</strong> {{ $mainOrder->created_at->format('d/m/Y') }}</td>
-        </tr>
-        <tr>
-            <td><strong>Cashier:</strong> {{ $mainOrder->cashier }}</td>
-            <td class="text-right"><strong>Customer:</strong> {{ $mainOrder->customer }}</td>
-        </tr>
-        <tr>
-            <td><strong>Payment Method:</strong> {{ ucfirst($mainOrder->payment) }}</td>
-            @if($mainOrder->payment === 'cash')
-                <td class="text-right"><strong>Paid:</strong> Rp{{ number_format($mainOrder->cash, 0, ',', '.') }}</td>
-            @else
-                <td class="text-right"><strong>Transfer Proof:</strong> See Attached</td>
+<body onload="window.print();">
+    <div class="invoice">
+        <div class="center">
+            <h2>Dapur Negeri</h2>
+            <p>Jl. Contoh Alamat, Kota</p>
+        </div>
+        <div class="line"></div>
+        <div class="details">
+            <p><strong>Invoice:</strong> {{ $mainOrder->id }}</p>
+            <p><strong>Date:</strong> {{ $mainOrder->created_at->format('d/m/Y') }}</p>
+            <p><strong>Cashier:</strong> {{ $mainOrder->cashier }}</p>
+            <p><strong>Customer:</strong> {{ $mainOrder->customer }}</p>
+            @if(isset($mainOrder->table_number))
+                <p><strong>Table No:</strong> {{ $mainOrder->table_number }}</p>
             @endif
-        </tr>
-    </table>
-
-    <table class="order-details">
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
+            <p><strong>Payment Method:</strong> {{ ucfirst($mainOrder->payment) }}</p>
+        </div>
+        <div class="line"></div>
+        <table width="100%">
             @foreach($mainOrder->orders as $order)
                 <tr>
                     <td>{{ $order->product_name }}</td>
-                    <td>{{ $order->qty }}</td>
-                    <td>Rp{{ number_format($order->product_price, 0, ',', '.') }}</td>
+                    <td>{{ $order->qty }} x Rp{{ number_format($order->product_price, 0, ',', '.') }}</td>
                     <td>Rp{{ number_format($order->qty * $order->product_price, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="3" class="text-right"><strong>Total:</strong></td>
-                <td><strong>Rp{{ number_format($mainOrder->grandtotal, 0, ',', '.') }}</strong></td>
-            </tr>
-            @if($mainOrder->payment === 'cash')
-                <tr>
-                    <td colspan="3" class="text-right"><strong>Cash Paid:</strong></td>
-                    <td><strong>Rp{{ number_format($mainOrder->cash, 0, ',', '.') }}</strong></td>
-                </tr>
-                <tr>
-                    <td colspan="3" class="text-right"><strong>Change:</strong></td>
-                    <td><strong>Rp{{ number_format($mainOrder->changes, 0, ',', '.') }}</strong></td>
-                </tr>
-            @endif
-        </tfoot>
-    </table>
-
-    <p class="text-right">Thank you for your purchase!</p>
-</div>
-
+        </table>
+        <div class="line"></div>
+        <p class="total">Total: Rp{{ number_format($mainOrder->grandtotal, 0, ',', '.') }}</p>
+        @if($mainOrder->payment === 'cash')
+            <p>Cash Paid: Rp{{ number_format($mainOrder->cash, 0, ',', '.') }}</p>
+            <p>Change: Rp{{ number_format($mainOrder->changes, 0, ',', '.') }}</p>
+        @endif
+        <div class="line"></div>
+        <div class="center">
+            <p>Thank you for your purchase!</p>
+        </div>
+    </div>
 </body>
 </html>

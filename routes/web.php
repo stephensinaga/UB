@@ -93,7 +93,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('update/pending/order/{id}', [CashierController::class, 'updateOrderItem'])->name('UpdateOrderItem');
 
 
-        Route::get('print/invoice/{id}', [CashierController::class, 'printInvoice'])->name('PrintInvoice');
+        // Route::get('print/invoice/{id}', [CashierController::class, 'printInvoice'])->name('PrintInvoice');
+        Route::get('/print/invoice/{id}', [CashierController::class, 'showInvoice'])->name('print.invoice');
+
 
         Route::get('list/pending/order', [CashierController::class, 'ListOrder'])->name('ListOrder');
         Route::put('process/pending/order/{id}/{type}/{cash}/{img}', [CashierController::class, 'ProcessPendingOrder'])->name('ProcessPendingOrder');
