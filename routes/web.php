@@ -94,7 +94,7 @@ Route::middleware(['auth'])->group(function () {
 
 
         // Route::get('print/invoice/{id}', [CashierController::class, 'printInvoice'])->name('PrintInvoice');
-        Route::get('/print/invoice/{id}', [CashierController::class, 'showInvoice'])->name('print.invoice');
+        Route::get('cetak/invoice/{id}', [CashierController::class, 'showInvoice'])->name('PrintInvoice');
 
 
         Route::get('list/pending/order', [CashierController::class, 'ListOrder'])->name('ListOrder');

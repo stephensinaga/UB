@@ -456,18 +456,23 @@
 
             $('#PrintInvoice').click(function() {
                 // Ambil ID invoice dari elemen modal
+
                 var invoiceId = $('#invoiceId').text();
 
+                console.log(invoiceId);
+
+                    var printUrl = '/cashier/cetak/invoice/' + invoiceId;
+                    window.open(printUrl, '_blank');
                 // Lakukan permintaan AJAX untuk mencetak invoice
                 $.ajax({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    url: '/cashier/print/invoice/' + invoiceId, // Sesuaikan dengan route Anda
+                    url: '/cashier/cetak/invoice/' + invoiceId, // Sesuaikan dengan route Anda
                     type: 'GET',
                     success: function(response) {
                         alert(response.success);
-                        // location.reload();
+                        location.reload();
                     },
                     error: function(xhr) {
                         console.log(xhr);
