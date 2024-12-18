@@ -112,7 +112,7 @@
     </div>
 </body>
 </html>
-<script>
+{{-- <script>
     window.onload = function() {
         window.print();
 
@@ -122,4 +122,4 @@
             window.close(); // Tutup tab cetak
         }, 1000);
     }
-</script>
+</script> --}}

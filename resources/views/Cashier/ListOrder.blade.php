@@ -307,29 +307,33 @@
                 $('.modal-backdrop').remove();
             }
             $('#PrintInvoice').click(function() {
-                // Ambil ID invoice dari elemen modal
                 var invoiceId = $('#invoiceId').text();
+                var printUrl = '/cashier/cetak/invoice/' + invoiceId;
 
-                // Lakukan permintaan AJAX untuk mencetak invoice
-                $.ajax({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: '/cashier/print/invoice/' + invoiceId, // Sesuaikan dengan route Anda
-                    type: 'GET',
-                    success: function(response) {
-                        alert(response.success);
-                        location.reload();
-                    },
-                    error: function(xhr) {
-                        console.log(xhr);
-                        var errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr
-                            .responseJSON.error : 'An error occurred.';
-                        alert('Error printing invoice: ' + errorMessage);
-                    }
-                });
+                var printWindow = window.open(printUrl, '_blank');
+
+                // Tunggu cetak selesai
+                printWindow.onload = function() {
+                    printWindow.print();
+                    printWindow.onafterprint = function() {
+                        // Panggil controller untuk cut kertas
+                        $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            url: '/cashier/cetak/invoice/cut/' + invoiceId,
+                            type: 'POST',
+                            success: function(response) {
+                                console.log(response.success);
+                            },
+                            error: function(xhr) {
+                                console.log('Error cutting paper:', xhr.responseText);
+                            }
+                        });
+                        printWindow.close();
+                    };
+                };
             });
-
         });
     </script>
 @endsection
