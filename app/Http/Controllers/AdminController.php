@@ -188,6 +188,13 @@ class AdminController extends Controller
         $mainOrders = MainOrder::with('orders')->where('cashier', $user)->get();
     }
 
+    public function DetailLaporanHarian($id)
+    {
+        $orders = Order::where('main_id', $id)->get();
+
+        return response()->json($orders);
+    }
+
     public function DetailLaporan($id)
     {
         $orders = Order::where('main_id', $id)->get();

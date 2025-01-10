@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('export/laporan/pdf', [AdminController::class, 'ExportLaporanPDF'])->name('ExportLaporanPDF');
         Route::get('laporan/view', [AdminController::class, 'SalesReport'])->name('SalesReportView');
         Route::get('laporan/penjualan/all', [AdminController::class, 'laporanPenjualan'])->name('LaporanPenjualan');
+        Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporan'])->name('DetailLaporan');
         Route::get('export/laporan/penjualan/filtered', [ExportController::class, 'ExportLaporanPenjualan'])->name('ExportLaporanPenjualan');
 
         // WeeklyReceipts
@@ -105,7 +106,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Laporan Penjualan
         Route::get('history/penjualan', [AdminController::class, 'HistoryPenjualanCashier'])->name('HistoryPenjualanCashier');
-        Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporan'])->name('DetailLaporan');
+        Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporanHarian'])->name('DetailLaporanHarian');
         Route::get('export/laporan/penjualan/harian', [ExportController::class, 'ExportLaporanPenjualanHarian'])->name('ExportLaporanPenjualanHarian');
     });
 

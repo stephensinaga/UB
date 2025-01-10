@@ -172,7 +172,7 @@
                 $('#order-details').empty();
 
                 $.ajax({
-                    url: '/cashier/detail/pembelian/customer/' + orderId,
+                    url: '/admin/detail/pembelian/customer/' + orderId,
                     type: 'GET',
                     success: function(data) {
                         data.forEach(function(item) {
