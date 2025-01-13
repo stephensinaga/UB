@@ -195,63 +195,28 @@ class AdminController extends Controller
         return response()->json($orders);
     }
 
-    public function DetailLaporan($id)
-    {
-        $orders = Order::where('main_id', $id)->get();
-
-        return response()->json($orders);
-    }
-
     public function LaporanPenjualan(Request $request)
     {
-        // Ambil data cashier dari user
         $cashiers = User::pluck('name', 'id');
 
-        // Mulai query untuk MainOrder, namun hanya jika ada filter
-        $mainOrdersQuery = MainOrder::with('orders');
+        $mainOrders = MainOrder::with('orders')
+            ->when($request->filled('payment_method'), function ($query) use ($request) {
+                $query->where('payment', $request->payment_method);
+            })
+            ->when($request->filled('cashier'), function ($query) use ($request) {
+                $query->where('cashier', $request->cashier);
+            })
+            ->when($request->filled('date'), function ($query) use ($request) {
+                $query->whereDate('created_at', $request->date);
+            })
+            ->when($request->filled(['start_date', 'end_date']), function ($query) use ($request) {
+                $query->whereBetween('created_at', [$request->start_date, $request->end_date]);
+            })
+            ->get();
 
-        $filtersApplied = false;
-
-        // Filter berdasarkan metode pembayaran jika ada
-        if ($request->filled('payment_method')) {
-            $mainOrdersQuery->where('payment', $request->payment_method);
-            $filtersApplied = true;
-        }
-
-        // Filter berdasarkan cashier jika ada
-        if ($request->filled('cashier')) {
-            $mainOrdersQuery->where('cashier', $request->cashier);
-            $filtersApplied = true;
-        }
-
-        // Filter berdasarkan tanggal
-        if ($request->filled('date')) {
-            $mainOrdersQuery->whereDate('created_at', $request->date);
-            $filtersApplied = true;
-        }
-
-        // Filter berdasarkan rentang tanggal jika ada
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $mainOrdersQuery->whereBetween('created_at', [$request->start_date, $request->end_date]);
-            $filtersApplied = true;
-        }
-
-        // Jika filter diisi, ambil data, jika tidak kosongkan data
-        if ($filtersApplied) {
-            $mainOrders = $mainOrdersQuery->get();
-        } else {
-            $mainOrders = collect(); // Data kosong jika tidak ada filter
-        }
-
-        // Ambil daftar customer yang unik (opsional)
         $customers = MainOrder::distinct('customer')->pluck('customer');
 
-        // Jika permintaan AJAX, kembalikan data dalam format JSON
-        if ($request->ajax()) {
-            return response()->json(['orders' => $mainOrders]);
-        }
-
-        // Tampilkan view dengan data yang diperlukan
         return view('Admin.laporanPenjualan', compact('mainOrders', 'cashiers', 'customers'));
     }
+
 }

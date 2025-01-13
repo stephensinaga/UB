@@ -103,92 +103,87 @@
                 </thead>
                 <tbody>
                     @foreach ($mainOrders as $order)
-                        <tr>
-                            <td>{{ $order->id }}</td>
-                            <td>{{ $order->cashier }}</td>
-                            <td>{{ $order->customer }}</td>
-                            <td>{{ number_format($order->grandtotal, 0, ',', '.') }}</td>
-                            <td>{{ ucfirst($order->payment) }}</td>
-                            <td>{{ number_format($order->cash, 0, ',', '.') }}</td>
-                            <td>{{ number_format($order->changes, 0, ',', '.') }}</td>
-                            <td>{{ ucfirst($order->status) }}</td>
-                            <td>
-                                @if ($order->transfer_image)
+                    <tr>
+                        <td>{{ $order->id }}</td>
+                        <td>{{ $order->cashier }}</td>
+                        <td>{{ $order->customer }}</td>
+                        <td>{{ number_format($order->grandtotal, 0, ',', '.') }}</td>
+                        <td>{{ ucfirst($order->payment) }}</td>
+                        <td>{{ number_format($order->cash, 0, ',', '.') }}</td>
+                        <td>{{ number_format($order->changes, 0, ',', '.') }}</td>
+                        <td>{{ ucfirst($order->status) }}</td>
+                        <td>
+                            @if ($order->transfer_image)
                                 <a href="{{ asset($order->transfer_image) }}" target="_blank">View Image</a>
                             @else
                                 N/A
                             @endif
-                            </td>
-                            <td>{{ $order->created_at->format('d M Y') }}</td>
-                            <td>
-                                <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#detailModal"
-                                    data-id="{{ $order->id }}">Detail</button>
-                            </td>
-                        </tr>
+                        </td>
+                        <td>{{ $order->created_at->format('d M Y') }}</td>
+                        <td>
+                            <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#detailModal{{ $order->id }}">
+                                Detail
+                            </button>
+                        </td>
+                    </tr>
                     @endforeach
                 </tbody>
             </table>
 
+
             <!-- Modal -->
-            <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabel">Detail Product</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Product Name</th>
-                                        <th>Product Code</th>
-                                        <th>Category</th>
-                                        <th>Quantity</th>
-                                        <th>Price</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="order-details">
-                                    <!-- Data akan dimasukkan melalui JavaScript -->
-                                </tbody>
-                            </table>
+            @foreach ($mainOrders as $order)
+                <div class="modal fade" id="detailModal{{ $order->id }}" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel{{ $order->id }}"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="detailModalLabel{{ $order->id }}">Detail Product for Order #{{ $order->id }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Product Name</th>
+                                            <th>Product Code</th>
+                                            <th>Category</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if ($order->orders->isNotEmpty())
+                                            @foreach ($order->orders as $detail)
+                                                <tr>
+                                                    <td>{{ $detail->product_name }}</td>
+                                                    <td>{{ $detail->product_code }}</td>
+                                                    <td>{{ $detail->product_category }}</td>
+                                                    <td>{{ $detail->qty }}</td>
+                                                    <td>{{ number_format($detail->product_price, 0, ',', '.') }}</td>
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="5">No orders available</td>
+                                            </tr>
+                                        @endif
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            @endforeach
         </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#detailModal').on('show.bs.modal', function(event) {
-                var button = $(event.relatedTarget);
-                var orderId = button.data('id');
-
-                $('#order-details').empty();
-
-                $.ajax({
-                    url: '/admin/detail/pembelian/customer/' + orderId,
-                    type: 'GET',
-                    success: function(data) {
-                        data.forEach(function(item) {
-                            $('#order-details').append(`
-                                <tr>
-                                    <td>${item.product_name}</td>
-                                    <td>${item.product_code}</td>
-                                    <td>${item.product_category}</td>
-                                    <td>${item.qty}</td>
-                                    <td>${item.product_price}</td>
-                                </tr>
-                            `);
-                        });
-                    }
-                });
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <script>
+            $(document).on('click', '.show-detail', function () {
+                let orderId = $(this).data('id');
             });
-        });
-    </script>
+        </script>
 @endsection

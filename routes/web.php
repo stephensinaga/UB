@@ -47,8 +47,7 @@ Route::middleware(['auth'])->group(function () {
         // Laporan & Export
         Route::get('export/laporan/pdf', [AdminController::class, 'ExportLaporanPDF'])->name('ExportLaporanPDF');
         Route::get('laporan/view', [AdminController::class, 'SalesReport'])->name('SalesReportView');
-        Route::get('laporan/penjualan/all', [AdminController::class, 'laporanPenjualan'])->name('LaporanPenjualan');
-        Route::get('detail/pembelian/customer/{id}', [AdminController::class, 'DetailLaporan'])->name('DetailLaporan');
+        Route::get('laporan/penjualan/all', [AdminController::class, 'LaporanPenjualan'])->name('LaporanPenjualan');
         Route::get('export/laporan/penjualan/filtered', [ExportController::class, 'ExportLaporanPenjualan'])->name('ExportLaporanPenjualan');
 
         // WeeklyReceipts
