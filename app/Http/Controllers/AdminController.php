@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
@@ -210,13 +211,17 @@ class AdminController extends Controller
                 $query->whereDate('created_at', $request->date);
             })
             ->when($request->filled(['start_date', 'end_date']), function ($query) use ($request) {
-                $query->whereBetween('created_at', [$request->start_date, $request->end_date]);
+                $start_date = $request->start_date;
+                $end_date = Carbon::parse($request->end_date)->endOfDay();
+                $query->whereBetween('created_at', [$start_date, $end_date]);
             })
             ->get();
 
         $customers = MainOrder::distinct('customer')->pluck('customer');
 
-        return view('Admin.laporanPenjualan', compact('mainOrders', 'cashiers', 'customers'));
+        $totalGrandTotal = $mainOrders->sum('grandtotal');
+
+        return view('Admin.laporanPenjualan', compact('mainOrders', 'cashiers', 'customers', 'totalGrandTotal'));
     }
 
 }

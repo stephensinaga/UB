@@ -84,6 +84,10 @@
                 </div>
             </form>
 
+            <div class="text-right">
+                <h4>Total Grand Total: Rp {{ number_format($totalGrandTotal, 0, ',', '.') }}</h4>
+            </div>
+
             <!-- Data Table -->
             <table class="table table-bordered table-striped">
                 <thead>
